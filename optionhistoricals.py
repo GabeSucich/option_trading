@@ -58,6 +58,9 @@ def setup_daily_info():
 		
 		stock_data = read_json(JSON_file_name)
 
+def GabeExample2():
+
+	return "Second Example"
 
 def GabeExample():
 
