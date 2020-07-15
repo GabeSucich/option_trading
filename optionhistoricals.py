@@ -3,6 +3,7 @@ import json
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
+tracked_stocks = []
 
 def read_json(filename):
 	"""FILENAME is the name of a json file containing option information. This function loads the json object into the script 
@@ -29,6 +30,13 @@ def list_tracked_stocks():
 	data = read_json("tracked_stocks.json")
 	return list(data.keys())
 
+
+def setup_daily_info():
+
+	for stock in list_tracked_stocks():
+		tracked_stocks.append({'symbol':stock, 'date': date_to_string(date.today()), 'market_data': {}})
+		JSON_file_name = stock + ".json"
+		stock_data = read_json(JSON_file_name)
 
 
 """Gabe's Work"""

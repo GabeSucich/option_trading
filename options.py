@@ -3,11 +3,12 @@ import robin_stocks
 from datetime import date, datetime
 import atexit
 import math
+import getpass
 
 print('Enter Robinhood email:')
 username = input()
 print('Enter your password:')
-password = input()
+password = getpass.getpass()
 
 robin_stocks.login(username, password)
 
@@ -314,6 +315,10 @@ def string_to_date(std_date):
 	month = int(std_date[5:7])
 	day = int(std_date[8:])
 	return date(year, month, day)
+
+def date_to_string(date_object):
+	"""Takes in a date object and returns it as a formatted date: YYYY-MM-DD"""
+	return date_object.strftime("%Y-%m-%d")
 
 def current_date():
 	"""Returns current date in date form"""
