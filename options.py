@@ -5,12 +5,15 @@ import atexit
 import math
 import getpass
 
-print('Enter Robinhood email:')
-username = input()
-print('Enter your password:')
-password = getpass.getpass()
+def login():
 
-robin_stocks.login(username, password)
+	data_file = open("credentials.json", "r")
+	data = json.load(data_file)
+	data_file.close()
+	robin_stocks.login(data["username"], data["password"])
+	return "Logged In"
+
+login()
 
 """Notes:
 When looking up options, id key in dictionary is 'id'
@@ -319,6 +322,14 @@ def string_to_date(std_date):
 def date_to_string(date_object):
 	"""Takes in a date object and returns it as a formatted date: YYYY-MM-DD"""
 	return date_object.strftime("%Y-%m-%d")
+
+def date_remove_dashes(std_date):
+	"""STD_DATE is a date in string form with dashes. Removes dashes for storage in JSON."""
+	return std_date[0:4] + std_date[5:7] + std_date[8:]
+
+def date_add_dashes(no_dash):
+	"""NO_DASH is a date string with no dashes. This function puts in dashes"""
+	return no_dash[0:4] + "-" + no_dash[4:6] + '-' + no_dash[6:8]
 
 def current_date():
 	"""Returns current date in date form"""

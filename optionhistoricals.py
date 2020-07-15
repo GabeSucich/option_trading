@@ -24,19 +24,40 @@ def dump_json(updated_dict, filename):
 
 	return "{0} successfully updated".format(filename)
 
-
 def list_tracked_stocks():
 	"""Returns a list of all stock symbols for the stocks being tracker"""
 	data = read_json("tracked_stocks.json")
 	return list(data.keys())
 
+def json_for_stock(symbol):
+	"""SYMBOL is a stock symbol (capitalized). Returns the json object from the associated json file."""
+	filename = symbol + ".json"
+	return read_json(filename)
+
+
+def ids_for_stock(symbol):
+	"""DATA is a JSON object read in from a data file. This function will get a list of id's for each option from this data."""
+	data = json_for_stock(symbol)
+	ids = []
+	for expiration in list(data.keys()):
+		for strike in list(data[expiration]['puts'].keys()):
+			ids.append(data[expiration]['puts'][strike]['id'])
+	for expiration in list(data.keys()):
+		for strike in list(data[expiration]['calls'].keys()):
+			ids.append(data[expiration]['calls'][strike]['id'])
+
+	return ids
+
+
 
 def setup_daily_info():
+	"""This function sets up the dictionary of market data to be gathered for the day.""" 
 
 	for stock in list_tracked_stocks():
-		tracked_stocks.append({'symbol':stock, 'date': date_to_string(date.today()), 'market_data': {}})
+		tracked_stocks.append({'symbol':stock, 'date': date_to_string(date.today()), 'market_data': []})
 		JSON_file_name = stock + ".json"
 		stock_data = read_json(JSON_file_name)
+
 
 
 """Gabe's Work"""
