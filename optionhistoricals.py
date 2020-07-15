@@ -58,7 +58,8 @@ def setup_daily_info():
 		JSON_file_name = stock + ".json"
 		stock_data = read_json(JSON_file_name)
 
-
+def SamExample():
+	print("xd")
 
 """Gabe's Work"""
 
