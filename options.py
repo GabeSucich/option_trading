@@ -4,6 +4,7 @@ from datetime import date, datetime
 import atexit
 import math
 import getpass
+import json
 
 def login():
 
@@ -11,7 +12,7 @@ def login():
 	data = json.load(data_file)
 	data_file.close()
 	robin_stocks.login(data["username"], data["password"])
-	return "Logged In"
+	print("Logged In")
 
 login()
 
