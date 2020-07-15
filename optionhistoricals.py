@@ -58,12 +58,13 @@ def setup_daily_info():
 		
 		stock_data = read_json(JSON_file_name)
 
+def SamExample():
+	print("xd")
+
 
 def GabeExample():
 
 	return "This is an example function to test merging"
-
-
 
 """Gabe's Work"""
 
