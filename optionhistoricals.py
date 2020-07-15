@@ -55,8 +55,13 @@ def setup_daily_info():
 
 	for stock in list_tracked_stocks():
 		tracked_stocks.append({'symbol':stock, 'date': date_to_string(date.today()), 'market_data': []})
-		JSON_file_name = stock + ".json"
+		
 		stock_data = read_json(JSON_file_name)
+
+
+def GabeExample():
+
+	return "This is an example function to test merging"
 
 
 
