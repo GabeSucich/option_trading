@@ -62,71 +62,57 @@ def setup_daily_info():
 
 """Gabe's Work"""
 
-
-
-
-
-
-# def get_ids(shelf, symbol):
-
-# 	stock_dict = shelf[symbol]
-# 	put_dict, call_dict = stock_dict['call'], stock_dict['put']
-# 	put_strikes = list(put_dict.keys())
-
-# def option_tracker(symbol, expiration_date, strike, option_type):
-
-# 	option_dict = all_options_data[expiration_date][symbol][option_type][strike]
-
-# def get_options_six_away(symbol, )
-
-# def day_info_storer(symbol) :
-
-# 	"""For each strike of each expiration, find the market data"""
-
-
-
-# def initialize(symbol)
-
-# all_options_data = {
-
-# 'SPY:' {
-
-# 	'expiration date1' {
-
-
-# 		'put': {
-
-# 			'55': {
-
-# 				'id': 
-
-# 				'2021-07-09': {
-# 					'630': "all market data"
-# 					'1330'
-# 				}
-# 			}
-# 			'50':
-# 			'45':
-# 			'40':
-
-# 		}
-
-# 		'call': {
-
-
-# 		}
-
-# 	}
-
-# 	'SPXL': {
-
-# 	}
-
-# 	'TSLA': {
-
-# 	}
-	
-
-# }
-
 # """Sam's Work"""
+
+def init_options_dict(symbol):
+	"""Initializes the options tracking dictionary for the stock with name SYMBOL. Also adds SYMBOL to dictionary of tracked stocks
+	in tracked_stocks.json if it does not already exist. Will raise an assertion error if trying to initialize tracking on a stock
+	SYMBOL that's already tracked. The options tracking dictionary for the stock SYMBOL is set up with keys representing the expiration 
+	dates of all available options. Each expiration date key maps to a dictionary with two keys "puts" and "calls". Each of the "puts"
+	and "calls" keys map to a dictionary with keys of strike prices. Each strike price key maps to a dictionary with a key that is the
+	Robinhood id for that option, and keys respresenting dates in the form yyyy-mm-dd. Each yyyy-mm-dd key maps to multiple dictionaries
+	each with an associated time key in the form hhmm (e.g. the key for 8:00AM is 0800, and 3:30PM is 1530). Each time key maps to the
+	market data of the given option at the time supplied by the Robinhood API.
+
+	E.g. At 5:00PM on July 14th, 2020, the market data for the put on the given stock with strike price $200 that expires on August 25th,
+	2020 is accessed by the following: this_symbol_dict["20200825"]["puts"]["200"]["20200714"]["1700"]
+
+	A visual of the dictionary layout is shown below:
+
+
+
+	this_symbol_dict = {
+
+	'expirationdate1': {
+					'puts': {
+						'strike price':{
+								'id': "this option's id",
+								'date1': {
+										'hour1': "market_data",
+										'hour2': "market_data",
+										},
+								'date2': {
+										'hour1': "",
+										'hour2': "",
+										}
+								}
+					},
+					'calls': {
+						'strike price':{
+								'id': "this option's id",
+								'date1':{
+										'hour1':" market_data",
+										'hour2': "market_data",
+										},
+								'date2': {
+										'hour1': "",
+										'hour2': "",
+										}
+								}
+					}
+				}
+}
+"""
+	alreadyTracked = symbol in list_tracked_stocks()
+	assert alreadyTracked == False, "Error, this stock is already tracked"
+	return;
