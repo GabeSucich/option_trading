@@ -63,9 +63,9 @@ def setup_daily_info():
 		stock_tracker = {'symbol':symbol, 'date': date_no_dashes, 'market_data': {}}
 
 		
-		# stock_data = read_json(json_filename(symbol))
-		# id_list = ids_for_stock(stock_data)
-		id_list = ids_from_json(read_json("option_historical_info.json"))
+		# stock_data = read_json(json_filename(symbol)) # Real code
+		# id_list = ids_for_stock(stock_data) # Real code
+		id_list = ids_from_json(read_json("option_historical_info.json")) # Test code
 		
 		for iD in id_list:
 			stock_tracker['market_data'][iD] = time_dict
@@ -89,15 +89,15 @@ def update_stock_json(stock_data):
 	symbol = stock_data['symbol']
 	date = stock_data['date']
 	daily_data = stock_data['market_data']
-	# json_data = read_json(json_filename(symbol))
-	json_data = read_json("option_historical_info.json")
+	# json_data = read_json(json_filename(symbol)) # Real code
+	json_data = read_json("option_historical_info.json") # Test code
 	for option in option_yielder(json_data):
 		option_id = option['id']
 		option_data = daily_data[option_id]
 		option[date] = option_data
 
-	# dump_json(json_data, json_filename(symbol))
-	dump_json(json_data, "option_historical_info.json")
+	# dump_json(json_data, json_filename(symbol)) # Real code
+	dump_json(json_data, "option_historical_info.json") # Test code
 
 
 
