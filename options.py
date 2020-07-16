@@ -286,7 +286,11 @@ def chain_data(symbol, info=None):
 
 def get_list_of_strikes(symbol, expiration_date, option_type="call"):
 
-	return options_by_expiration(symbol, expiration_date, option_type, 'strike_price')
+	unordered_string = options_by_expiration(symbol, expiration_date, option_type, 'strike_price')
+	floats = [float(price) for price in unordered_string]
+	floats.sort(reverse=False)
+	return [str(price) for price in floats]
+
 
 def possible_expiration_dates(symbol):
 	"""Gives a list of strings, each corresponding to a different possible expiration date. INSTANT."""
