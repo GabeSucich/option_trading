@@ -1,8 +1,6 @@
 from options import *
 import json
 
-from apscheduler.schedulers.blocking import BlockingScheduler
-
 """Gabe's Work"""
 
 tracked_stocks = []
@@ -42,17 +40,21 @@ def json_filename(symbol):
 	return read_json(filename)
 
 
-def ids_from_json(json_data):
-	"""JSON_DATA is a JSON object read in from a data file. This function will get a list of id's for each option from this data."""
-	ids = []
+def option_yielder(json_data):
+	"""JSON_DATA is the object read for a json file. This function creates an iterator that goes iterates through each of the options in the json object."""
 	for expiration in list(json_data.keys()):
 		for strike in list(json_data[expiration]['puts'].keys()):
-			ids.append(json_data[expiration]['puts'][strike]['id'])
+			yield json_data[expiration]['puts'][strike]
+
 	for expiration in list(json_data.keys()):
 		for strike in list(json_data[expiration]['calls'].keys()):
-			ids.append(json_data[expiration]['calls'][strike]['id'])
+			yield json_data[expiration]['calls'][strike]
 
-	return ids
+def id_yielder(json_data):
+	"""JSON_DATA is a JSON object read in from a data file. This function will get a list of id's for each option from this data."""
+
+	for option in option_yielder(json_data):
+		yield option['id']
 
 
 def setup_daily_info():
@@ -66,23 +68,18 @@ def setup_daily_info():
 
 		
 		# stock_data = read_json(json_filename(symbol)) # Real code
-		# id_list = ids_for_stock(stock_data) # Real code
-		id_list = ids_from_json(read_json("option_historical_info.json")) # Test code
+		# ids = id_yielder(stock_data) # Real code
+		ids = id_yielder(read_json("option_historical_info.json")) # Test code
 		
-		for iD in id_list:
-			stock_tracker['market_data'][iD] = time_dict
+		for option_id in ids:
+			stock_tracker['market_data'][option_id] = time_dict
 
 		tracked_stocks.append(stock_tracker)
 
-def option_yielder(json_data):
-	"""JSON_DATA is the object read for a json file. This function creates an iterator that goes iterates through each of the options in the json object."""
-	for expiration in list(json_data.keys()):
-		for strike in list(json_data[expiration]['puts'].keys()):
-			yield json_data[expiration]['puts'][strike]
+def clear_daily_info():
+	"""Clears out tracked_stocks list for next day"""
 
-	for expiration in list(json_data.keys()):
-		for strike in list(json_data[expiration]['calls'].keys()):
-			yield json_data[expiration]['calls'][strike]
+	tracked_stocks = []
 
 
 def update_stock_json(stock_data):
