@@ -64,6 +64,9 @@ def setup_daily_info():
 def test();
 	return "useless"
 
+def test2():
+	return "nothing"
+
 def init_options_dict(symbol):
 	"""Initializes the options tracking dictionary for the stock with name SYMBOL. Also adds SYMBOL to dictionary of tracked stocks
 	in tracked_stocks.json if it does not already exist. Will raise an assertion error if trying to initialize tracking on a stock
