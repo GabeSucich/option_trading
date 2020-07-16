@@ -56,9 +56,13 @@ def setup_daily_info():
 	"""This function sets up the dictionary of market data to be gathered for the day.""" 
 
 	for stock in list_tracked_stocks():
-		tracked_stocks.append({'symbol':stock, 'date': date_to_string(date.today()), 'market_data': []})
+		stock_tracker = {'symbol':stock, 'date': date_to_string(date.today()), 'market_data': []}
 		
-		stock_data = read_json(JSON_file_name)
+		id_list = ids_for_stock(stock)
+		for iD in id_list:
+			stock_tracker['market_data'].append({'id': iD, 'data': {}})
+
+
 
 # """Sam's Work"""
 
