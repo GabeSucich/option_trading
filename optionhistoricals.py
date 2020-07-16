@@ -9,6 +9,8 @@ tracked_stocks = []
 store_times = ["0630", "0700", "0730", "0800", "0830", "0900", "0930", "1000", "1030", "1100", "1130", "1200", "1230", "1300"]
 time_dict = {"0630":"", "0700":"", "0730":"", "0800":"", "0830":"", "0900":"", "0930":"", "1000":"", "1030":"", "1100":"", "1130":"", "1200":"", "1230":"", "1300":"" }
 
+"""JSON HANDLING"""
+
 def read_json(filename):
 	"""FILENAME is the name of a json file containing option information. This function loads the json object into the script 
 	to be edited. The return object is the option dictionary to be edited."""
@@ -100,9 +102,32 @@ def update_stock_json(stock_data):
 	dump_json(json_data, "option_historical_info.json") # Test code
 
 
+def update_all_json():
+	"""Updates each stock json file with the new data in the tracked stocks list."""
 
+	for stock_data in tracked_stocks:
+		update_stock_json(stock_data)
 
+"""ROBINHOOD DATA COLLECTION"""
 
+def new_market_data(stock_data, time):
+	"""STOCK_DATA is a single dictionary from the "tracked_stocks" list which holds the daily data for a single stock. TIME is a time of data collection that is ALREADY ROUNDED
+	to the nearest storage time. This function calls on the market data for each id key in stock data, gathers the option market data, and adds it to the stock_data as the value of
+	the appropriate time key."""
+
+	market_dict = stock_data['market_data']
+
+	for option_id in list(market_dict.keys()):
+
+		market_data = market_data_by_id(option_id)
+		market_dict[option_id][time] = market_data
+
+def update_all_data():
+
+	time = get_military_time()
+
+	for stock_data in tracked_stocks:
+		new_market_data(stock_data, time)
 
 
 """Datetime functions"""

@@ -313,6 +313,11 @@ def latest_stock_price(symbol):
 
 """DATETIME FUNCTIONS"""
 
+def get_military_time():
+	"""Returns the time in HHMM format"""
+	time = datetime.now()
+	return time.strftime("%H%M")
+
 def string_to_date(std_date):
 	"""Takes in a string date and converts it to a date form for computation."""
 	year = int(std_date[0:4])
