@@ -3,6 +3,8 @@ import json
 
 from apscheduler.schedulers.blocking import BlockingScheduler
 
+"""Gabe's Work"""
+
 tracked_stocks = []
 
 def read_json(filename):
@@ -57,16 +59,6 @@ def setup_daily_info():
 		tracked_stocks.append({'symbol':stock, 'date': date_to_string(date.today()), 'market_data': []})
 		
 		stock_data = read_json(JSON_file_name)
-
-def SamExample():
-	print("xd")
-
-
-def GabeExample():
-
-	return "This is an example function to test merging"
-
-"""Gabe's Work"""
 
 # """Sam's Work"""
 
