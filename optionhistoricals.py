@@ -6,6 +6,8 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 """Gabe's Work"""
 
 tracked_stocks = []
+store_times = ["0630", "0700", "0730", "0800", "0830", "0900", "0930", "1000", "1030", "1100", "1130", "1200", "1230", "1300"]
+time_dict = {"0630":"", "0700":"", "0730":"", "0800":"", "0830":"", "0900":"", "0930":"", "1000":"", "1030":"", "1100":"", "1130":"", "1200":"", "1230":"", "1300":"" }
 
 def read_json(filename):
 	"""FILENAME is the name of a json file containing option information. This function loads the json object into the script 
@@ -26,27 +28,27 @@ def dump_json(updated_dict, filename):
 
 	return "{0} successfully updated".format(filename)
 
+
 def list_tracked_stocks():
 	"""Returns a list of all stock symbols for the stocks being tracker"""
 	data = read_json("tracked_stocks.json")
 	return list(data.keys())
 
-def json_for_stock(symbol):
+def json_filename(symbol):
 	"""SYMBOL is a stock symbol (capitalized). Returns the json object from the associated json file."""
 	filename = symbol + ".json"
 	return read_json(filename)
 
 
-def ids_for_stock(symbol):
-	"""DATA is a JSON object read in from a data file. This function will get a list of id's for each option from this data."""
-	data = json_for_stock(symbol)
+def ids_from_json(json_data):
+	"""JSON_DATA is a JSON object read in from a data file. This function will get a list of id's for each option from this data."""
 	ids = []
-	for expiration in list(data.keys()):
-		for strike in list(data[expiration]['puts'].keys()):
-			ids.append(data[expiration]['puts'][strike]['id'])
-	for expiration in list(data.keys()):
-		for strike in list(data[expiration]['calls'].keys()):
-			ids.append(data[expiration]['calls'][strike]['id'])
+	for expiration in list(json_data.keys()):
+		for strike in list(json_data[expiration]['puts'].keys()):
+			ids.append(json_data[expiration]['puts'][strike]['id'])
+	for expiration in list(json_data.keys()):
+		for strike in list(json_data[expiration]['calls'].keys()):
+			ids.append(json_data[expiration]['calls'][strike]['id'])
 
 	return ids
 
@@ -54,16 +56,66 @@ def ids_for_stock(symbol):
 def setup_daily_info():
 	"""This function sets up the dictionary of market data to be gathered for the day.""" 
 
-	for stock in list_tracked_stocks():
-		stock_tracker = {'symbol':stock, 'date': date_to_string(date.today()), 'market_data': []}
+	for symbol in list_tracked_stocks():
+
+		date_dashes = date_to_string(date.today())
+		date_no_dashes = date_remove_dashes(date_dashes)
+		stock_tracker = {'symbol':symbol, 'date': date_no_dashes, 'market_data': {}}
+
 		
-		id_list = ids_for_stock(stock)
+		# stock_data = read_json(json_filename(symbol))
+		# id_list = ids_for_stock(stock_data)
+		id_list = ids_from_json(read_json("option_historical_info.json"))
+		
 		for iD in id_list:
-			stock_tracker['market_data'].append({'id': iD, 'data': {}})
+			stock_tracker['market_data'][iD] = time_dict
 
-		tracked_stocks.apoend(stock_tracker)
+		tracked_stocks.append(stock_tracker)
+
+def option_yielder(json_data):
+	"""JSON_DATA is the object read for a json file. This function creates an iterator that goes iterates through each of the options in the json object."""
+	for expiration in list(json_data.keys()):
+		for strike in list(json_data[expiration]['puts'].keys()):
+			yield json_data[expiration]['puts'][strike]
+
+	for expiration in list(json_data.keys()):
+		for strike in list(json_data[expiration]['calls'].keys()):
+			yield json_data[expiration]['calls'][strike]
 
 
+def update_stock_json(stock_data):
+	"""STOCK_DATA is a single dictionary from the "tracked_stocks" list which holds the daily data for a single stock. This function will go into the
+	associated json file and add the data into the appropriate parts of the json object."""
+	symbol = stock_data['symbol']
+	date = stock_data['date']
+	daily_data = stock_data['market_data']
+	# json_data = read_json(json_filename(symbol))
+	json_data = read_json("option_historical_info.json")
+	for option in option_yielder(json_data):
+		option_id = option['id']
+		option_data = daily_data[option_id]
+		option[date] = option_data
+
+	# dump_json(json_data, json_filename(symbol))
+	dump_json(json_data, "option_historical_info.json")
+
+
+
+
+
+
+
+"""Datetime functions"""
+
+def round_to_thirty(str_time):
+	"""STR_TIME is a time in the format HHMM. This function rounds down to the nearest half hour."""
+	minutes = int(str_time[2:])
+	if minutes//30 == 1:
+		rounded = "30"
+	else:
+		rounded = "00"
+
+	return str_time[0:2] + rounded
 
 
 # """Sam's Work"""
