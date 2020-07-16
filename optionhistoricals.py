@@ -61,6 +61,9 @@ def setup_daily_info():
 		for iD in id_list:
 			stock_tracker['market_data'].append({'id': iD, 'data': {}})
 
+		tracked_stocks.apoend(stock_tracker)
+
+
 
 
 # """Sam's Work"""
