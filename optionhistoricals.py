@@ -5,7 +5,6 @@ import json
 
 tracked_stocks = []
 store_times = ["0630", "0700", "0730", "0800", "0830", "0900", "0930", "1000", "1030", "1100", "1130", "1200", "1230", "1300"]
-time_dict = {"0630":"", "0700":"", "0730":"", "0800":"", "0830":"", "0900":"", "0930":"", "1000":"", "1030":"", "1100":"", "1130":"", "1200":"", "1230":"", "1300":"" }
 
 """JSON HANDLING"""
 
@@ -39,21 +38,27 @@ def json_filename(symbol):
 	filename = symbol + ".json"
 	return read_json(filename)
 
+def expiration_generator(json_data):
+	yield from list(json_data.keys())
 
-def option_yielder(json_data):
-	"""JSON_DATA is the object read for a json file. This function creates an iterator that goes iterates through each of the options in the json object."""
-	for expiration in list(json_data.keys()):
-		for strike in list(json_data[expiration]['puts'].keys()):
-			yield json_data[expiration]['puts'][strike]
+def put_strike_generator(json_data, expiration):
+	yield from list(json_data[expiration]['puts'].keys())
 
-	for expiration in list(json_data.keys()):
-		for strike in list(json_data[expiration]['calls'].keys()):
-			yield json_data[expiration]['calls'][strike]
+def call_strike_generator(json_data, expiration):
+	yield from list(json_data[expiration]['calls'].keys())
 
-def id_yielder(json_data):
+def option_generator(json_data):
+	for expiration in expiration_generator(json_data):
+		for put_strike in put_strike_generator(json_data, expiration):
+			yield json_data[expiration]['puts'][put_strike]
+
+		for call_strike in call_strike_generator(json_data, expiration):
+			yield json_data[expiration]['calls'][call_strike]
+
+def id_generator(json_data):
 	"""JSON_DATA is a JSON object read in from a data file. This function will get a list of id's for each option from this data."""
 
-	for option in option_yielder(json_data):
+	for option in option_generator(json_data):
 		yield option['id']
 
 
@@ -62,17 +67,16 @@ def setup_daily_info():
 
 	for symbol in list_tracked_stocks():
 
-		date_dashes = date_to_string(date.today())
-		date_no_dashes = date_remove_dashes(date_dashes)
-		stock_tracker = {'symbol':symbol, 'date': date_no_dashes, 'market_data': {}}
+		today = date_to_string(date.today())
+		stock_tracker = {'symbol':symbol, 'date': today, 'market_data': {}}
 
 		
 		# stock_data = read_json(json_filename(symbol)) # Real code
-		# ids = id_yielder(stock_data) # Real code
-		ids = id_yielder(read_json("option_historical_info.json")) # Test code
+		# ids = id_generator(stock_data) # Real code
+		ids = id_generator(read_json("ExampleJSON/DIA.json")) # Test code
 		
 		for option_id in ids:
-			stock_tracker['market_data'][option_id] = time_dict
+			stock_tracker['market_data'][option_id] = {}
 
 		tracked_stocks.append(stock_tracker)
 
@@ -89,14 +93,14 @@ def update_stock_json(stock_data):
 	date = stock_data['date']
 	daily_data = stock_data['market_data']
 	# json_data = read_json(json_filename(symbol)) # Real code
-	json_data = read_json("option_historical_info.json") # Test code
-	for option in option_yielder(json_data):
+	json_data = read_json("ExampleJSON/DIA.json") # Test code
+	for option in option_generator(json_data):
 		option_id = option['id']
 		option_data = daily_data[option_id]
 		option[date] = option_data
 
 	# dump_json(json_data, json_filename(symbol)) # Real code
-	dump_json(json_data, "option_historical_info.json") # Test code
+	dump_json(json_data, "ExampleJSON/DIA.json") # Test code
 
 
 def update_all_json():
@@ -113,6 +117,7 @@ def new_market_data(stock_data, time):
 	the appropriate time key."""
 
 	market_dict = stock_data['market_data']
+	time = rount_to_thirty(get_military_time())
 
 	for option_id in list(market_dict.keys()):
 
