@@ -51,7 +51,6 @@ def ids_for_stock(symbol):
 	return ids
 
 
-
 def setup_daily_info():
 	"""This function sets up the dictionary of market data to be gathered for the day.""" 
 
@@ -61,6 +60,9 @@ def setup_daily_info():
 		stock_data = read_json(JSON_file_name)
 
 # """Sam's Work"""
+
+def test();
+	return "useless"
 
 def init_options_dict(symbol):
 	"""Initializes the options tracking dictionary for the stock with name SYMBOL. Also adds SYMBOL to dictionary of tracked stocks
