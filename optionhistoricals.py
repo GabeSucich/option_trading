@@ -33,10 +33,13 @@ def list_tracked_stocks():
 	data = read_json("tracked_stocks.json")
 	return list(data.keys())
 
+def get_json_object(symbol):
+	"""Returns the json object from the associated json file of name SYMBOL.json"""
+	return read_json(json_filename(symbol))
+
 def json_filename(symbol):
-	"""SYMBOL is a stock symbol (capitalized). Returns the json object from the associated json file."""
-	filename = symbol + ".json"
-	return read_json(filename)
+	"""Appends .json to the string SYMBOL"""
+	return symbol + ".json"
 
 def expiration_generator(json_data):
 	yield from list(json_data.keys())
@@ -147,7 +150,7 @@ def round_to_thirty(str_time):
 
 # """Sam's Work"""
 
-def init_options_dict(symbol):
+def init_stock(symbol):
 	"""Initializes the options tracking dictionary for the stock with name SYMBOL. Also adds SYMBOL to dictionary of tracked stocks
 	in tracked_stocks.json if it does not already exist. Will raise an assertion error if trying to initialize tracking on a stock
 	SYMBOL that's already tracked. The options tracking dictionary for the stock SYMBOL is set up with keys representing the expiration 
@@ -198,4 +201,86 @@ def init_options_dict(symbol):
 """
 	alreadyTracked = symbol in list_tracked_stocks()
 	assert alreadyTracked == False, "Error, this stock is already tracked"
+	print("Finding expiration dates of options")
+	expirationDatesDict = expiration_dates_dict(symbol)
+	print("Adding puts and calls keys")
+	putsAndCallsDict = add_puts_and_calls_keys(expirationDatesDict)
+	print("Adding strike prices for calls")
+	callStrikePricesDict = add_call_strike_prices(putsAndCallsDict, symbol)
+	print("Adding strike prices for puts")
+	putAndCallStrikePricesDict = add_put_strike_prices(callStrikePricesDict, symbol)
+	print("Adding IDs to all calls")
+	addIDsToCallsDict = add_ids_to_calls(putAndCallStrikePricesDict, symbol)
+	print("Adding IDs to all puts")
+	addIDsToPutsDict = add_ids_to_puts(addIDsToCallsDict, symbol)
+	print("Done contructing dictionary")
+	dump_json(addIDsToPutsDict, json_filename(symbol))
+	# keep below lines commented out until testing is complete
+	add_to_tracked_stocks_json(symbol)
+	print("Initialized!")
 	return;
+
+def add_to_tracked_stocks_json(symbol):
+	"""adds the stock SYMBOL to the list of tracked stocks in tracked_stocks.json 
+	WARNING: never call this function unless the stock SYMBOL is truly tracked"""
+	trackedStocksDict = read_json("tracked_stocks.json");
+	trackedStocksDict[symbol] = chain_data(symbol, info="id");
+	dump_json(trackedStocksDict, "tracked_stocks.json");
+
+
+
+def expiration_dates_dict(symbol):
+	"""Returns a dictionary for the stock SYMBOL with keys corresponding to each option expiration date"""
+	newDict = {}
+	expirationDates = possible_expiration_dates(symbol)
+	for date in expirationDates:
+		newDict[date] = {}
+	print(newDict);
+	return newDict
+
+def add_puts_and_calls_keys(dict):
+	"""Takes a dictionary DICT with expiration date keys and adds "puts" and "calls" keys to each expiration date"""
+	for expirationDate in dict.keys():
+		dict[expirationDate]["puts"] = {}
+		dict[expirationDate]["calls"] = {}
+	return dict
+
+def add_call_strike_prices(dict, symbol):
+	"""Takes a dictionary DICT for stock SYMBOL with keys "calls" for each expiration date and maps call strike prices
+	to each "calls" key"""
+	i = len(dict.keys());
+	for expirationDate in dict.keys():
+		print("{0} more expiration dates to go".format(i))
+		i -= 1;
+		for strikePrice in get_list_of_strikes(symbol, expirationDate, "call"):
+			dict[expirationDate]["calls"][strikePrice] = {}
+			print("Found a strike price")
+	return dict
+
+def add_put_strike_prices(dict, symbol):
+	"""Takes a dictionary DICT for stock SYMBOL with keys "puts" for each expiration date and maps put strike prices
+	to each "put" key"""
+	i = len(dict.keys());
+	for expirationDate in dict.keys():
+		print("{0} more expiration dates to go".format(i))
+		i -= 1;
+		for strikePrice in get_list_of_strikes(symbol, expirationDate, "put"):
+			dict[expirationDate]["puts"][strikePrice] = {}
+			print("Found a strike prices for put")
+	return dict
+
+def add_ids_to_calls(dict, symbol):
+	"""Takes a dictionary DICT for stock SYMBOL with strike price keys for calls. For each call at a given strike price
+	and expiration date, the call strike price key is mapped to a dictionary of the form {"id": "***id number***"}"""
+	for expirationDate in dict.keys():
+		for strikePrice in dict[expirationDate]["calls"].keys():
+			dict[expirationDate]["calls"][strikePrice] = {"id": instrument_data(symbol, expirationDate, strikePrice, "call", info="id")}
+	return dict
+
+def add_ids_to_puts(dict, symbol):
+	"""Takes a dictionary DICT for stock SYMBOL with strike price keys for puts. For each put at a given strike price
+	and expiration date, the put strike price key is mapped to a dictionary of the form {"id": "***id number***"}"""
+	for expirationDate in dict.keys():
+		for strikePrice in dict[expirationDate]["puts"].keys():
+			dict[expirationDate]["puts"][strikePrice] = {"id": instrument_data(symbol, expirationDate, strikePrice, "put", info="id")}
+	return dict
