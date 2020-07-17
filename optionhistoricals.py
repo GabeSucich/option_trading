@@ -30,7 +30,7 @@ def dump_json(updated_dict, filename):
 
 def list_tracked_stocks():
 	"""Returns a list of all stock symbols for the stocks being tracker"""
-	data = read_json("tracked_stocks.json")
+	data = read_json("stockJSON/tracked_stocks.json")
 	return list(data.keys())
 
 def get_json_object(symbol):
@@ -39,7 +39,7 @@ def get_json_object(symbol):
 
 def json_filename(symbol):
 	"""Appends .json to the string SYMBOL"""
-	return symbol + ".json"
+	return "stockJSON/" + symbol + ".json"
 
 def expiration_generator(json_data):
 	yield from list(json_data.keys())
@@ -58,6 +58,20 @@ def option_generator(json_data):
 		for call_strike in call_strike_generator(json_data, expiration):
 			yield json_data[expiration]['calls'][call_strike]
 
+def future_option_generator(json_data):
+
+	all_expirations = list(expiration_generator(json_data))
+	unexpired = [date for date in all_expirations if is_not_past(date)]
+
+	for expiration in unexpired:
+
+		for put_strike in put_strike_generator(json_data, expiration):
+			yield json_data[expiration]['puts'][put_strike]
+
+		for call_strike in call_strike_generator(json_data, expiration):
+			yield json_data[expiration]['calls'][call_strike]
+
+
 def id_generator(json_data):
 	"""JSON_DATA is a JSON object read in from a data file. This function will get a list of id's for each option from this data."""
 
@@ -74,9 +88,9 @@ def setup_daily_info():
 		stock_tracker = {'symbol':symbol, 'date': today, 'market_data': {}}
 
 		
-		# stock_data = read_json(json_filename(symbol)) # Real code
-		# ids = id_generator(stock_data) # Real code
-		ids = id_generator(read_json("ExampleJSON/DIA.json")) # Test code
+		stock_data = get_json_object(symbol) # Real code
+		ids = id_generator(stock_data) # Real code
+		# ids = id_generator(read_json("ExampleJSON/DIA.json")) # Test code
 		
 		for option_id in ids:
 			stock_tracker['market_data'][option_id] = {}
@@ -89,21 +103,21 @@ def clear_daily_info():
 	tracked_stocks = []
 
 
-def update_stock_json(stock_data):
-	"""STOCK_DATA is a single dictionary from the "tracked_stocks" list which holds the daily data for a single stock. This function will go into the
+def update_stock_json(tracked_data):
+	"""TRACKED_DATA is a single dictionary from the "tracked_stocks" list which holds the daily data for a single stock. This function will go into the
 	associated json file and add the data into the appropriate parts of the json object."""
-	symbol = stock_data['symbol']
-	date = stock_data['date']
-	daily_data = stock_data['market_data']
-	# json_data = read_json(json_filename(symbol)) # Real code
-	json_data = read_json("ExampleJSON/DIA.json") # Test code
-	for option in option_generator(json_data):
+	symbol = tracked_data['symbol']
+	date = tracked_data['date']
+	daily_data = tracked_data['market_data']
+	json_data = get_json_object(symbol) # Real code
+	# json_data = read_json("ExampleJSON/DIA.json") # Test code
+	for option in future_option_generator(json_data):
 		option_id = option['id']
 		option_data = daily_data[option_id]
 		option[date] = option_data
 
-	# dump_json(json_data, json_filename(symbol)) # Real code
-	dump_json(json_data, "ExampleJSON/DIA.json") # Test code
+	dump_json(json_data, json_filename(symbol)) # Real code
+	# dump_json(json_data, "ExampleJSON/DIA.json") # Test code
 
 
 def update_all_json():
@@ -114,13 +128,13 @@ def update_all_json():
 
 """ROBINHOOD DATA COLLECTION"""
 
-def new_market_data(stock_data, time):
+def new_market_data(stock_data):
 	"""STOCK_DATA is a single dictionary from the "tracked_stocks" list which holds the daily data for a single stock. TIME is a time of data collection that is ALREADY ROUNDED
 	to the nearest storage time. This function calls on the market data for each id key in stock data, gathers the option market data, and adds it to the stock_data as the value of
 	the appropriate time key."""
 
 	market_dict = stock_data['market_data']
-	time = rount_to_thirty(get_military_time())
+	time = round_to_thirty(get_military_time())
 
 	for option_id in list(market_dict.keys()):
 
@@ -129,10 +143,8 @@ def new_market_data(stock_data, time):
 
 def update_all_data():
 
-	time = get_military_time()
-
 	for stock_data in tracked_stocks:
-		new_market_data(stock_data, time)
+		new_market_data(stock_data)
 
 
 """Datetime functions"""
@@ -206,18 +218,12 @@ def init_stock(symbol):
 	print("Adding puts and calls keys")
 	putsAndCallsDict = add_puts_and_calls_keys(expirationDatesDict)
 	print("Adding strike prices for calls")
-	callStrikePricesDict = add_call_strike_prices(putsAndCallsDict, symbol)
-	print("Adding strike prices for puts")
-	putAndCallStrikePricesDict = add_put_strike_prices(callStrikePricesDict, symbol)
-	print("Adding IDs to all calls")
-	addIDsToCallsDict = add_ids_to_calls(putAndCallStrikePricesDict, symbol)
-	print("Adding IDs to all puts")
-	addIDsToPutsDict = add_ids_to_puts(addIDsToCallsDict, symbol)
-	print("Done contructing dictionary")
-	dump_json(addIDsToPutsDict, json_filename(symbol))
+	finalDict = add_strike_prices_and_ids(putsAndCallsDict, symbol)
+
+	dump_json(finalDict, json_filename(symbol))
 	# keep below lines commented out until testing is complete
 	add_to_tracked_stocks_json(symbol)
-	print("Initialized!")
+	print("{0} initialized!".format(symbol))
 	return;
 
 def add_to_tracked_stocks_json(symbol):
@@ -226,8 +232,6 @@ def add_to_tracked_stocks_json(symbol):
 	trackedStocksDict = read_json("tracked_stocks.json");
 	trackedStocksDict[symbol] = chain_data(symbol, info="id");
 	dump_json(trackedStocksDict, "tracked_stocks.json");
-
-
 
 def expiration_dates_dict(symbol):
 	"""Returns a dictionary for the stock SYMBOL with keys corresponding to each option expiration date"""
@@ -245,42 +249,38 @@ def add_puts_and_calls_keys(dict):
 		dict[expirationDate]["calls"] = {}
 	return dict
 
-def add_call_strike_prices(dict, symbol):
+def add_strike_prices_and_ids(dict, symbol):
 	"""Takes a dictionary DICT for stock SYMBOL with keys "calls" for each expiration date and maps call strike prices
 	to each "calls" key"""
-	i = len(dict.keys());
-	for expirationDate in dict.keys():
-		print("{0} more expiration dates to go".format(i))
-		i -= 1;
-		for strikePrice in get_list_of_strikes(symbol, expirationDate, "call"):
-			dict[expirationDate]["calls"][strikePrice] = {}
-			print("Found a strike price")
-	return dict
 
-def add_put_strike_prices(dict, symbol):
-	"""Takes a dictionary DICT for stock SYMBOL with keys "puts" for each expiration date and maps put strike prices
-	to each "put" key"""
-	i = len(dict.keys());
 	for expirationDate in dict.keys():
-		print("{0} more expiration dates to go".format(i))
-		i -= 1;
-		for strikePrice in get_list_of_strikes(symbol, expirationDate, "put"):
-			dict[expirationDate]["puts"][strikePrice] = {}
-			print("Found a strike prices for put")
-	return dict
 
-def add_ids_to_calls(dict, symbol):
-	"""Takes a dictionary DICT for stock SYMBOL with strike price keys for calls. For each call at a given strike price
-	and expiration date, the call strike price key is mapped to a dictionary of the form {"id": "***id number***"}"""
-	for expirationDate in dict.keys():
-		for strikePrice in dict[expirationDate]["calls"].keys():
-			dict[expirationDate]["calls"][strikePrice] = {"id": instrument_data(symbol, expirationDate, strikePrice, "call", info="id")}
-	return dict
+		for option in sorted_options_by_expiration(symbol, expirationDate, "call"):
 
-def add_ids_to_puts(dict, symbol):
-	"""Takes a dictionary DICT for stock SYMBOL with strike price keys for puts. For each put at a given strike price
-	and expiration date, the put strike price key is mapped to a dictionary of the form {"id": "***id number***"}"""
+			strikePrice = option['strike_price']
+			option_id = option['id']
+
+			if not market_data_by_id(option_id):
+				print('Option passed documentation but is null')
+
+			else:
+				market_data_by_id(option_id)
+				dict[expirationDate]["calls"][strikePrice] = {'id': option_id}
+				print("Found a strike price")
+
 	for expirationDate in dict.keys():
-		for strikePrice in dict[expirationDate]["puts"].keys():
-			dict[expirationDate]["puts"][strikePrice] = {"id": instrument_data(symbol, expirationDate, strikePrice, "put", info="id")}
+		for option in sorted_options_by_expiration(symbol, expirationDate, "put"):
+			
+			strikePrice = option['strike_price']
+			option_id = option['id']
+
+			if not market_data_by_id(option_id):
+				print('Option passed documentation but is null')
+
+			else:
+				market_data_by_id(option_id)
+				dict[expirationDate]["puts"][strikePrice] = {'id': option_id}
+				print("Found a strike price")
+				
+	
 	return dict
