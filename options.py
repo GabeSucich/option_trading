@@ -249,6 +249,13 @@ def options_by_expiration(symbol, expirationDate, optionType='both', info=None):
 	assert all(isinstance(i, str) for i in [symbol, expirationDate, optionType])
 	return robin_stocks.options.find_options_for_stock_by_expiration(symbol, expirationDate, optionType, info)
 
+def sorted_options_by_expiration(symbol, expirationDate, optionType, info=None):
+	"""Gets all option data sorted in ascending order by strike price. Takes time to load pages."""
+
+	unsorted = options_by_expiration(symbol, expirationDate, optionType, info)
+	unsorted.sort(key=lambda dict: float(dict['strike_price']))
+	return unsorted
+
 def options_by_strike(symbol, strike, optionType='both', info=None):
 	"""Gets all market and instrument data for option from the strike price. Takes time to load pages."""
 	assert all(isinstance(i, str) for i in [symbol, strike, optionType])
@@ -258,6 +265,8 @@ def options_by_expiration_and_strike(symbol, expirationDate, strike, optionType=
 	"""Gets all market and instrument data for option from expiration and strike price. INSTANT."""
 	assert all(isinstance(i, str) for i in [symbol, expirationDate, strike, optionType])
 	return robin_stocks.options.find_options_for_stock_by_expiration_and_strike(symbol, expirationDate, strike, optionType, info)
+
+
 
 def market_data(symbol, expirationDate, strike, optionType, info=None):
 	"""Gets option market data from information. Takes time to load pages."""
@@ -350,6 +359,17 @@ def days_away(date):
 
 	mod_date = string_to_date(date)
 	return abs((current_date() - mod_date).days)
+
+def is_not_past(query_date):
+	"""QUERY_DATE is a string-formatted date: "YYYY-MM-DD". Checks to see if date has passed."""
+	today_date = date_remove_dashes(date_to_string(current_date()))
+	query_date = date_remove_dashes(query_date)
+
+	if int(today_date) - int(query_date) <= 0:
+
+		return True
+
+	return False
 
 def is_today(date):
 	"""Takes in the string form of a date and returns whether or not that date is today."""
