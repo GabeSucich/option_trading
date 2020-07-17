@@ -156,8 +156,13 @@ def find_options_for_stock_by_expiration(symbol, expirationDate, optionType='bot
                        and item.get('tradability') == 'tradable']
 
     for item in filteredOptions:
-        marketData = get_option_market_data_by_id(item['id'])
-        item.update(marketData)
+        try:
+            marketData = get_option_market_data_by_id(item['id'])
+            item.update(marketData)
+
+        except:
+            print('This option is not active')
+            filteredOptions.remove(item)
 
     return(helper.filter(filteredOptions, info))
 
@@ -187,6 +192,7 @@ def find_options_for_stock_by_strike(symbol, strike, optionType='both', info=Non
     allOptions = find_tradable_options_for_stock(symbol, optionType)
     filteredOptions = [item for item in allOptions if float(item.get("strike_price")) == float(strike)
                        and item.get('tradability') == 'tradable']
+
 
     for item in filteredOptions:
         marketData = get_option_market_data_by_id(item['id'])
