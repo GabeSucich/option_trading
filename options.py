@@ -354,18 +354,23 @@ def current_date():
 	"""Returns current date in date form"""
 	return date.today()
 
+def current_year():
+
+	today = date_to_string(current_date())
+	return today[0:4]
+
 def days_away(date):
 	"""Takes in the string form of a date and returns the number of days until date."""
 
 	mod_date = string_to_date(date)
 	return abs((current_date() - mod_date).days)
 
-def is_not_past(query_date):
+def is_future(query_date):
 	"""QUERY_DATE is a string-formatted date: "YYYY-MM-DD". Checks to see if date has passed."""
 	today_date = date_remove_dashes(date_to_string(current_date()))
 	query_date = date_remove_dashes(query_date)
 
-	if int(today_date) - int(query_date) <= 0:
+	if int(today_date) - int(query_date) < 0:
 
 		return True
 
