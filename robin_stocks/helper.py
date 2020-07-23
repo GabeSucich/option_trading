@@ -132,12 +132,19 @@ def id_for_option(symbol, expirationDate, strike, optionType='both'):
     url = 'https://api.robinhood.com/options/instruments/'
     data = request_get(url, 'pagination', payload)
 
-    listOfOptions = [item for item in data if item["expiration_date"] == expirationDate and float(item["strike_price"]) == float(strike)]
-    if (len(listOfOptions) == 0):
-        print('Getting the option ID failed. Perhaps the expiration date is wrong format, or the strike price is wrong.')
-        return(None)
+    try:
 
-    return(listOfOptions[0]['id'])
+        listOfOptions = [item for item in data if item["expiration_date"] == expirationDate and float(item["strike_price"]) == float(strike)]
+        if (len(listOfOptions) == 0):
+            print('Getting the option ID failed. Perhaps the expiration date is wrong format, or the strike price is wrong.')
+            return(None)
+
+        return(listOfOptions[0]['id'])
+
+    except:
+
+        print("There was an error in helper.py line 137. Option data could not be retrieved")
+
 
 
 def round_price(price):
