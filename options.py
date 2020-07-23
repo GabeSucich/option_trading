@@ -7,6 +7,7 @@ import getpass
 import json
 
 def login():
+	"""Go into credentials.json and add your robinhood login information."""
 
 	data_file = open("credentials.json", "r")
 	data = json.load(data_file)
@@ -235,6 +236,7 @@ def load_financials():
 
 
 def buying_power():
+	"""Returns buying power."""
 	financials = load_financials()
 	return string_to_rounded(financials['cash'])
 
@@ -330,6 +332,7 @@ def get_option_historicals_by_id(optionID, span="week", interval="10minute"):
 	return historical_data
 
 def get_historical_time(data_point):
+	"""Returns the time of a DATA_POINT"""
 
 	try:
 		return data_point['begins_at'][11:16]
@@ -337,6 +340,7 @@ def get_historical_time(data_point):
 		return None
 
 def get_historical_date(data_point):
+	"""Returns the date of a DATA_POINT"""
 
 	try:
 		return data_point['begins_at'][0:10]
@@ -344,6 +348,7 @@ def get_historical_date(data_point):
 		return None
 
 def formatted_option_historicals(raw_historicals, trade_date):
+	"""Returns a formatted version of the RAW_HISTORICALS containing data for a specific TRADE_DATE."""
 
 	daily_data = []
 
@@ -399,6 +404,7 @@ def latest_stock_price(symbol):
 """DATETIME FUNCTIONS"""
 
 def utc_to_military(utc_time):
+	"""Takes UTC time (HH-MM) and converts it to military time: (HHMM)"""
 	utc_hour = utc_time[0:2]
 	minute = utc_time[3:]
 
