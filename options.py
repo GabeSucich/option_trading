@@ -244,6 +244,10 @@ def current_option_positions(info=None):
 	"""Gives holding and option id data for open positions. INSTANT. No market or instrument data"""
 	return robin_stocks.options.get_open_option_positions(info)
 
+def tradable_options(symbol):
+	"""Return all tradeable options for a single stock"""
+	return robin_stocks.options.find_tradable_options_for_stock(symbol)
+
 def options_by_expiration(symbol, expirationDate, optionType='both', info=None):
 	"""Gets market and instrument data for option from expiration date. Takes time to load pages."""
 	assert all(isinstance(i, str) for i in [symbol, expirationDate, optionType])
@@ -265,7 +269,6 @@ def options_by_expiration_and_strike(symbol, expirationDate, strike, optionType=
 	"""Gets all market and instrument data for option from expiration and strike price. INSTANT."""
 	assert all(isinstance(i, str) for i in [symbol, expirationDate, strike, optionType])
 	return robin_stocks.options.find_options_for_stock_by_expiration_and_strike(symbol, expirationDate, strike, optionType, info)
-
 
 
 def market_data(symbol, expirationDate, strike, optionType, info=None):
@@ -300,6 +303,75 @@ def get_list_of_strikes(symbol, expiration_date, option_type="call"):
 	floats.sort(reverse=False)
 	return [str(price) for price in floats]
 
+def get_option_historicals(symbol, expiration_date, strike_price, option_type, span="week", interval="10minute"):
+	"""SYMBOL, EXPIRATION_DATE, STRIKE_PRICE, OPTION_TYPE are all strings. Returns data every TEN minutes for each day in the past week. Times are in UTC time."""
+	historicals = robin_stocks.options.get_option_historicals(symbol, expiration_date, strike_price, option_type)
+
+	if type(historicals) == dict:
+
+		historical_data = historicals['data_points']
+
+	else:
+		historical_data = historicals
+
+	return historical_data
+
+def get_option_historicals_by_id(optionID, span="week", interval="10minute"):
+	"""Gets the historical data for an option with OPTIONID. SPAN specifies how far back to get historicals, and interval specifies how often in the day to present data."""
+	historicals = robin_stocks.options.get_option_historicals_by_id(optionID, span, interval)
+
+	if type(historicals) == dict:
+
+		historical_data = historicals['data_points']
+
+	else:
+		historical_data = historicals
+
+	return historical_data
+
+def get_historical_time(data_point):
+
+	try:
+		return data_point['begins_at'][11:16]
+	except:
+		return None
+
+def get_historical_date(data_point):
+
+	try:
+		return data_point['begins_at'][0:10]
+	except:
+		return None
+
+def formatted_option_historicals(raw_historicals, trade_date):
+
+	daily_data = []
+
+	for data_point in raw_historicals:
+
+		time = get_historical_time(data_point)
+		date = get_historical_date(data_point)
+
+		if time:
+
+			if (date == trade_date and time[3:] in ["00", "30"]):
+
+				daily_data.append(data_point)
+ 
+
+	basic_market_data = {}
+
+	for data_point in daily_data:
+
+		time = utc_to_military(get_historical_time(data_point))
+		del data_point['begins_at']
+		del data_point['interpolated']
+		del data_point['volume']
+		del data_point['session']
+		basic_market_data[time] = data_point
+
+	return {"basic_market_data": basic_market_data}
+
 
 def possible_expiration_dates(symbol):
 	"""Gives a list of strings, each corresponding to a different possible expiration date. INSTANT."""
@@ -325,6 +397,14 @@ def latest_stock_price(symbol):
 
 
 """DATETIME FUNCTIONS"""
+
+def utc_to_military(utc_time):
+	utc_hour = utc_time[0:2]
+	minute = utc_time[3:]
+
+	hour = str(int(utc_hour) - 7)
+
+	return hour + minute
 
 def get_military_time():
 	"""Returns the time in HHMM format"""

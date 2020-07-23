@@ -483,8 +483,47 @@ def get_option_instrument_data(symbol, expirationDate, strike, optionType, info=
 
     return(helper.filter(data, info))
 
+def get_option_historicals_by_id(optionID, span='week', interval='10minute'):
+    """Returns the data that is used to make the graphs.
 
-def get_option_historicals(symbol, expirationDate, strike, optionType, span='week'):
+    :param option_id: The id of the option.
+    :type symbol: str
+    :param span: Sets the range of the data to be either 'day', 'week', 'year', or '5year'. Default is 'week'.
+    :type span: Optional[str]
+    :returns: Returns a list that contains a list for each symbol. \
+    Each list contains a dictionary where each dictionary is for a different time.
+
+    """
+
+    span_check = ['day', 'week', 'year', '5year']
+    if span not in span_check:
+        print('ERROR: Span must be "day", "week", "year", or "5year"')
+        return([None])
+
+    if span == 'day':
+        interval = '5minute'
+    elif span == 'week':
+        interval = '10minute'
+    elif span == 'year':
+        interval = 'day'
+    else:
+        interval = 'week'
+
+    try:
+
+        url = urls.option_historicals(optionID)
+        payload = {'span': span,
+                   'interval': interval}
+        data = helper.request_get(url, 'regular', payload)
+
+        return(data)
+
+    except:
+
+        print("There was an error in line 514 of options.py")
+
+
+def get_option_historicals(symbol, expirationDate, strike, optionType, span='week', interval="10minute"):
     """Returns the data that is used to make the graphs.
 
     :param symbol: The ticker of the stock.
@@ -522,11 +561,17 @@ def get_option_historicals(symbol, expirationDate, strike, optionType, span='wee
     else:
         interval = 'week'
 
-    optionID = helper.id_for_option(symbol, expirationDate, strike, optionType)
+    try:
 
-    url = urls.option_historicals(optionID)
-    payload = {'span': span,
-               'interval': interval}
-    data = helper.request_get(url, 'regular', payload)
+        optionID = helper.id_for_option(symbol, expirationDate, strike, optionType)
 
-    return(data)
+        url = urls.option_historicals(optionID)
+        payload = {'span': span,
+                   'interval': interval}
+        data = helper.request_get(url, 'regular', payload)
+
+        return(data)
+
+    except:
+
+        print("There was an error in line 525 of options.py")

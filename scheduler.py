@@ -18,8 +18,8 @@ option_scheduler.add_job(update_all_data, "cron", day_of_week="mon-fri", hour="1
 
 option_scheduler.add_job(update_all_json, "cron", day_of_week="mon-fri", hour="14", minute="0")
 
-option_scheduler.add_job(clear_daily_info, "cron", day_of_week="mon-fri", hour="17", minute="0")
+option_scheduler.add_job(clear_daily_info, "cron", day_of_week="mon-fri", hour="13", minute="15")
 
-option_scheduler.add_job(update_expirations_for_all, "cron", day_of_week="sun", hour="12", minute="0")
+# option_scheduler.add_job(update_expirations_for_all, "cron", day_of_week="sun", hour="12", minute="0")
 
 option_scheduler.start()
