@@ -190,29 +190,27 @@ def new_basic_data_for_expiration(json_data, expiration, date_list):
 
 		for trade_date in date_list:
 
-			if trade_date not in option:
+			if raw_historicals:
+				
+				formatted = formatted_option_historicals(raw_historicals, trade_date)
+				if not formatted:
+					print("{} out of range of historical data.".format(trade_date))
+				else:
+					basic_market_data = formatted["basic_market_data"]
+					option[trade_date] = basic_market_data
+					print(option_id)
 
-				if raw_historicals:
-					
-					formatted = formatted_option_historicals(raw_historicals, trade_date)
-					if not formatted:
-						print("{} out of range of historical data.".format(trade_date))
+			else:
+
+				errors = read_json("stockJSON/errors.json")
+				if errors[symbol]:
+					if errors[symbol][trade_date]:
+						errors[symbol][trade_date].append(option_id)
 					else:
-						basic_market_data = formatted["basic_market_data"]
-						option[trade_date] = basic_market_data
-						print(option_id)
+						errors[symbol][trade_data] = [option_id]
 
 				else:
-
-					errors = read_json("stockJSON/errors.json")
-					if errors[symbol]:
-						if errors[symbol][trade_date]:
-							errors[symbol][trade_date].append(option_id)
-						else:
-							errors[symbol][trade_data] = [option_id]
-
-					else:
-						errors[symbol] = {trade_date: [option_id]}
+					errors[symbol] = {trade_date: [option_id]}
 
 def new_basic_data(symbol, json_data, date_list):
 	"""JSON_DATA is a dictionary read in from a JSON file. This function will collect basic data for the given stock on the given day and add it into the dictionary."""

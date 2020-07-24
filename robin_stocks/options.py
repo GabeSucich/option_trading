@@ -500,14 +500,14 @@ def get_option_historicals_by_id(optionID, span='week', interval='10minute'):
         print('ERROR: Span must be "day", "week", "year", or "5year"')
         return([None])
 
-    if span == 'day':
-        interval = '5minute'
-    elif span == 'week':
-        interval = '10minute'
-    elif span == 'year':
-        interval = 'day'
-    else:
-        interval = 'week'
+    # if span == 'day':
+    #     interval = '5minute'
+    # elif span == 'week':
+    #     interval = '10minute'
+    # elif span == 'year':
+    #     interval = 'day'
+    # else:
+    #     interval = 'week'
 
     try:
 
@@ -552,14 +552,14 @@ def get_option_historicals(symbol, expirationDate, strike, optionType, span='wee
         print('ERROR: Span must be "day", "week", "year", or "5year"')
         return([None])
 
-    if span == 'day':
-        interval = '5minute'
-    elif span == 'week':
-        interval = '10minute'
-    elif span == 'year':
-        interval = 'day'
-    else:
-        interval = 'week'
+    # if span == 'day':
+    #     interval = '5minute'
+    # elif span == 'week':
+    #     interval = '10minute'
+    # elif span == 'year':
+    #     interval = 'day'
+    # else:
+    #     interval = 'week'
 
     try:
 

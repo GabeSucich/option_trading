@@ -305,7 +305,7 @@ def get_list_of_strikes(symbol, expiration_date, option_type="call"):
 	floats.sort(reverse=False)
 	return [str(price) for price in floats]
 
-def get_option_historicals(symbol, expiration_date, strike_price, option_type, span="week", interval="10minute"):
+def get_option_historicals(symbol, expiration_date, strike_price, option_type, span="week", interval="30minute"):
 	"""SYMBOL, EXPIRATION_DATE, STRIKE_PRICE, OPTION_TYPE are all strings. Returns data every TEN minutes for each day in the past week. Times are in UTC time."""
 	historicals = robin_stocks.options.get_option_historicals(symbol, expiration_date, strike_price, option_type)
 
@@ -318,9 +318,9 @@ def get_option_historicals(symbol, expiration_date, strike_price, option_type, s
 
 	return historical_data
 
-def get_option_historicals_by_id(optionID, span="week", interval="10minute"):
+def get_option_historicals_by_id(optionID, span="week", interval="30minute"):
 	"""Gets the historical data for an option with OPTIONID. SPAN specifies how far back to get historicals, and interval specifies how often in the day to present data."""
-	historicals = robin_stocks.options.get_option_historicals_by_id(optionID, span, interval)
+	historicals = robin_stocks.options.get_option_historicals_by_id(optionID, span=span, interval=interval)
 
 	if type(historicals) == dict:
 
@@ -359,7 +359,7 @@ def formatted_option_historicals(raw_historicals, trade_date):
 
 		if time:
 
-			if (date == trade_date and time[3:] in ["00", "30"]):
+			if (date == trade_date):
 
 				daily_data.append(data_point)
  
