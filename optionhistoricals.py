@@ -4,7 +4,7 @@ import holidays
 
 tracked_stocks = []
 closed_holidays = ["New Year's Day", "Martin Luther King Jr. Day", "Independence Day", "Thanksgiving", "Memorial Day", "Labor Day", "Christmas Day", "Washington's Birthday"]
-closed_dates = []
+hoiday_dates = []
 
 """Functions for retrieving and updating information in JSON files."""
 
@@ -180,39 +180,44 @@ def clear_daily_info():
 # 		for stock_data in tracked_stocks:
 # 			new_market_data(stock_data)
 
+def new_basic_data_for_option(json_data, option, date_list):
+
+	option_id = option['id']
+	raw_historicals = get_option_historicals_by_id(option_id)
+
+	for trade_date in date_list:
+
+		if trade_date not in option:
+
+			if raw_historicals:
+				
+				formatted = formatted_option_historicals(raw_historicals, trade_date)
+				if not formatted:
+					print("{} out of range of historical data.".format(trade_date))
+				else:
+					basic_market_data = formatted["basic_market_data"]
+					option[trade_date] = basic_market_data
+					print(option_id)
+
+			else:
+
+				errors = read_json("stockJSON/errors.json")
+				if errors[symbol]:
+					if errors[symbol][trade_date]:
+						errors[symbol][trade_date].append(option_id)
+					else:
+						errors[symbol][trade_data] = [option_id]
+
+				else:
+					errors[symbol] = {trade_date: [option_id]}
+
+
 
 def new_basic_data_for_expiration(json_data, expiration, date_list):
 
 	for option in option_generator_for_expiration(json_data, expiration):
 
-		option_id = option['id']
-		raw_historicals = get_option_historicals_by_id(option_id)
-
-		for trade_date in date_list:
-
-			if trade_date not in option:
-
-				if raw_historicals:
-					
-					formatted = formatted_option_historicals(raw_historicals, trade_date)
-					if not formatted:
-						print("{} out of range of historical data.".format(trade_date))
-					else:
-						basic_market_data = formatted["basic_market_data"]
-						option[trade_date] = basic_market_data
-						print(option_id)
-
-				else:
-
-					errors = read_json("stockJSON/errors.json")
-					if errors[symbol]:
-						if errors[symbol][trade_date]:
-							errors[symbol][trade_date].append(option_id)
-						else:
-							errors[symbol][trade_data] = [option_id]
-
-					else:
-						errors[symbol] = {trade_date: [option_id]}
+		new_basic_data_for_option(json_data, option, date_list)
 
 def new_basic_data(symbol, json_data, date_list):
 	"""JSON_DATA is a dictionary read in from a JSON file. This function will collect basic data for the given stock on the given day and add it into the dictionary."""
@@ -322,17 +327,82 @@ def historical_dates_available(historicals_list):
 
 	return dates
 
-def select_first_id_from_expiration(json_data, expiration):
+def select_first_valid_id_from_expiration(json_data, expiration):
 	"""Picks out the first id in a JSON_DATA dictionary fo the given EXPIRATION date."""
 
 	ids = id_generator_for_expiration(json_data, expiration)
+	market_data = None
+	while not market_data:
+		option_id = next(ids)
+		market_data = get_option_historicals_by_id(option_id)
+
 	return next(ids)
 
 def all_available_historical_dates(json_data, expiration):
 	"""Will find all the available historicals for the """
-	test_id = select_first_id_from_expiration(json_data, expiration)
+	test_id = select_first_valid_id_from_expiration(json_data, expiration)
 	option_historicals = get_option_historicals_by_id(test_id)
 	return historical_dates_available(option_historicals)
+
+
+def update_strike_prices_for_expiration(symbol, json_data, tradable_options, expiration):
+
+	all_calls = [option for option in tradable_options if option['expiration_date'] == expiration and option['type'] == 'call']
+	contained_call_strikes = list(call_strike_generator(json_data, expiration))
+
+	all_puts = [option for option in tradable_options if option['expiration_date'] == expiration and option['type'] == 'put']
+	contained_put_strikes = list(put_strike_generator(json_data, expiration))
+
+	for call in all_calls:
+
+		call_strike = call['strike_price']
+
+		if call_strike not in contained_call_strikes:
+
+			option_id = call['id']
+			json_data[expiration]['calls'][call_strike] = {'id': option_id}
+			option = json_data[expiration]['calls'][call_strike]
+			historicals = get_option_historicals_by_id(option_id)
+
+			if historicals:
+				print(option_id)
+				date_list = historical_dates_available(historicals)
+				new_basic_data_for_option(json_data, option, date_list)
+
+	for put in all_puts:
+
+		put_strike = put['strike_price']
+
+		if put_strike not in contained_put_strikes:
+
+			option_id = put['id']
+			json_data[expiration]['puts'][put_strike] = {'id': option_id}
+			option = json_data[expiration]['puts'][put_strike]
+			historicals = get_option_historicals_by_id(option_id)
+
+			if historicals:
+				print(option_id)
+				date_list = historical_dates_available(historicals)
+				new_basic_data_for_option(json_data, option, date_list)
+
+def update_strikes_for_all(symbols=[]):
+	if not symbols:
+
+		symbols = list_tracked_stocks()
+
+	for symbol in symbols:
+
+		print('Updating strike prices for {}'.format(symbol))
+		json_data = get_json_object(symbol)
+		all_options = tradable_options(symbol)
+
+		for expiration in future_expiration_generator(json_data):
+
+			update_strike_prices_for_expiration(symbol, json_data, all_options, expiration)
+
+		dump_json(json_data, json_filename(symbol))
+
+
 
 
 		
@@ -468,14 +538,36 @@ def round_to_thirty(str_time):
 
 	return str_time[0:2] + rounded
 
-def get_holiday_dates():
+def format_strike_price(strike_price):
+
+	if "." not in strike_price:
+
+		strike_price += ".0000"
+		return strike_price
+
+	else:
+
+		decimal_index = strike_price.index('.')
+
+		missing_places = 5 - (len(strike_price) - decimal_index)
+
+		for i in range(missing_places):
+
+			strike_price += "0"
+
+		return strike_price
+
+def get_holiday_dates(years=[int(current_year())]):
 	"""Gets the date for each holiday in the current year on which the stock market is closed."""
-	year = int(current_year())
-	for date, name in sorted(holidays.US(state='CA', years=year).items()):
+	assert all([type(year) == int for year in years]), "All argument YEARS must be integers"
+	holiday_dates = []
+	for date, name in sorted(holidays.US(state='CA', years=years).items()):
 
 		if name in closed_holidays:
 
-			closed_dates.append(date_to_string(date))
+			holiday_dates.append(date_to_string(date))
+
+	return holiday_dates
 
 def market_is_open():
 	"""Function which determines if the market is open on a weekday or not. Filters out holidays."""
