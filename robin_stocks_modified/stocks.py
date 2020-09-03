@@ -366,7 +366,7 @@ def find_instrument_data(query):
         return(data)
 
 
-def get_historicals(inputSymbols, span='week', bounds='regular'):
+def get_stock_historicals(inputSymbols, interval="hour", span='week', bounds='regular'):
     """Represents the data that is used to make the graphs.
 
     :param inputSymbols: May be a single stock ticker or a list of stock tickers.
@@ -391,18 +391,19 @@ def get_historicals(inputSymbols, span='week', bounds='regular'):
         print('ERROR: extended and trading bounds can only be used with a span of "day"')
         return([None])
 
-    if span == 'day':
-        interval = '5minute'
-    elif span == 'week':
-        interval = '10minute'
-    elif span == 'month':
-        interval = 'hour'
-    elif span == '3month':
-        interval = 'hour'
-    elif span == 'year':
-        interval = 'day'
-    else:
-        interval = 'week'
+    # if span == 'day':
+    #     interval = '5minute'
+    # elif span == 'week':
+    #     interval = '10minute'
+    # elif span == 'month':
+    #     interval = 'hour'
+    # elif span == '3month':
+    #     interval = 'hour'
+    # elif span == 'year':
+    #     interval = 'day'
+    # else:
+    #     interval = 'week'
+
 
     symbols = helper.inputs_to_set(inputSymbols)
     url = urls.historicals()
