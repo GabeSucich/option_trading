@@ -51,6 +51,7 @@ from .markets import get_currency_pairs,        \
                      get_top_movers
 
 from .options import get_aggregate_positions,                           \
+                     get_option_historicals_by_id,                      \
                      get_market_options,                                \
                      get_all_option_positions,                          \
                      get_open_option_positions,                         \
@@ -67,6 +68,7 @@ from .options import get_aggregate_positions,                           \
                      get_option_instrument_data_by_id,                  \
                      get_option_instrument_data,                        \
                      get_option_historicals
+                     
 
 from .orders import get_all_stock_orders,           \
                     get_all_option_orders,          \
@@ -131,7 +133,7 @@ from .stocks import get_quotes,                 \
                     get_news,                   \
                     get_splits,                 \
                     find_instrument_data,       \
-                    get_historicals,            \
+                    get_stock_historicals,      \
                     get_pricebook_by_id,        \
                     get_pricebook_by_symbol,    \
                     get_stock_quote_by_id,      \

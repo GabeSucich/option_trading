@@ -3,9 +3,10 @@ from stocks import *
 # CLASSES #
 
 def printer(x, y, z, portfolio, stock, date, time, historicals):
-	
-	print('date:', date, "  time:", time)
+	stock_info = stock.get_closest_match(date, time)
+	print('date:', date, "  time:", time, " stock_price:", stock_info['open_price'])
 	return []
+	
 
 
 class Simulation:

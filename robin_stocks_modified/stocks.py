@@ -366,7 +366,7 @@ def find_instrument_data(query):
         return(data)
 
 
-def get_historicals(inputSymbols, interval="hour", span='week', bounds='regular'):
+def get_stock_historicals(inputSymbols, interval="hour", span='week', bounds='regular'):
     """Represents the data that is used to make the graphs.
 
     :param inputSymbols: May be a single stock ticker or a list of stock tickers.
