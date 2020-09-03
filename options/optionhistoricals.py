@@ -6,9 +6,7 @@ from Utils import login
 import json
 import holidays
 
-tracked_stocks = []
 closed_holidays = ["New Year's Day", "Martin Luther King Jr. Day", "Independence Day", "Thanksgiving", "Memorial Day", "Labor Day", "Christmas Day", "Washington's Birthday"]
-hoiday_dates = []
 
 """Functions for retrieving and updating information in JSON files."""
 
@@ -43,32 +41,6 @@ def get_json_object(symbol):
 def json_filename(symbol):
 	"""Appends .json to the string SYMBOL"""
 	return "optionJSON/" + symbol + ".json"
-
-def update_stock_json(tracked_data):
-	"""TRACKED_DATA is a single dictionary from the "tracked_stocks" list which holds the daily data for a single stock. This function will go into the
-	associated json file and add the data into the appropriate parts of the json object."""
-	try:
-		symbol = tracked_data['symbol']
-		date = tracked_data['date']
-		daily_data = tracked_data['market_data']
-		json_data = get_json_object(symbol) # Real code
-		# json_data = read_json("ExampleJSON/DIA.json") # Test code
-		for option in future_option_generator(json_data):
-			option_id = option['id']
-			option_data = daily_data[option_id]
-			option[date] = option_data
-
-		dump_json(json_data, json_filename(symbol)) # Real code
-		# dump_json(json_data, "ExampleJSON/DIA.json") # Test code
-	except:
-		print("There was an issue updating the json for")
-
-def update_all_json():
-	"""Updates each stock json file with the new data in the tracked stocks list."""
-	if market_is_open():
-
-		for stock_data in tracked_stocks:
-			update_stock_json(stock_data)
 
 """Functions for generating different types of keys from a json stock object"""
 
@@ -128,36 +100,6 @@ def future_id_generator(json_data):
 	for option in future_option_generator(json_data):
 		yield option['id']
 
-def setup_stock_info(symbol):
-	"""This function sets up the dictionary of market data to be gathered for the day for the SYMBOL stock."""
-
-	today = date_to_string(date.today())
-	stock_tracker = {'symbol':symbol, 'date': today, 'market_data': {}}
-
-	
-	stock_data = get_json_object(symbol) # Real code
-	ids = future_id_generator(stock_data) # Real code
-	# ids = future_id_generator(read_json("CVX.json")) # Test code
-	
-	for option_id in ids:
-		stock_tracker['market_data'][option_id] = {}
-
-	tracked_stocks.append(stock_tracker)
-
-
-def setup_daily_info():
-	"""This function sets up the dictionary of market data to be gathered for the day for every stock that is being tracked.""" 
-	if market_is_open():
-
-		for symbol in list_tracked_stocks():
-
-			setup_stock_info(symbol)
-
-def clear_daily_info():
-	"""Clears out tracked_stocks list for next day"""
-	if market_is_open():
-
-		tracked_stocks = []
 
 """Functions which gather information from the Robinhood API."""
 
@@ -468,14 +410,6 @@ def check_all_data(symbols=[]):
 		error_count = check_data(symbol)
 		if error_count == 0: 
 			print("No errors found for " + symbol)
-
-
-
-
-
-
-
-
 
 		
 def init_stock(symbol):
