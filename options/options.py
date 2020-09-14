@@ -73,7 +73,7 @@ def instrument_data(symbol, expirationDate, strike, optionType, info=None):
 def instrument_data_by_id(option_id, info=None):
 	"""Gets instrument data from option id. INSTANT."""
 	assert type(option_id) == str
-	return robin_stocks.options.get_option_instrument_data_by_id(option_id)
+	return robin_stocks.options.get_option_instrument_data_by_id(option_id, info)
 
 def chain_data(symbol, info=None):
 	"""Gets chain data for stock. INSTANT. Includes possible expiration dates for options."""
@@ -155,7 +155,6 @@ def formatted_option_historicals(raw_historicals, trade_date):
 		time = utc_to_military(get_historical_time(data_point))
 		del data_point['begins_at']
 		del data_point['interpolated']
-		del data_point['volume']
 		del data_point['session']
 		basic_market_data[time] = data_point
 

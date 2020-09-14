@@ -44,6 +44,10 @@ def current_date():
 	"""Returns current date in date form"""
 	return date.today()
 
+def current_date_as_string():
+
+	return date_to_string(current_date())
+
 def get_year(date):
 	"""Get year of DATE string"""
 	return date[0:4]
@@ -61,6 +65,7 @@ def days_away(date):
 
 	mod_date = string_to_date(date)
 	return abs((current_date() - mod_date).days)
+
 
 def is_future(query_date, starting_date='today'):
 	"""QUERY_DATE is a string-formatted date: "YYYY-MM-DD". Checks to see if query date is in the future."""
@@ -82,7 +87,10 @@ def is_future(query_date, starting_date='today'):
 	return False
 
 def is_not_past(query_date, starting_date='today'):
-	"""QUERY_DATE is a string-formatted date: "YYYY-MM-DD". Checks to see if query date has passed."""
+	"""QUERY_DATE is a string-formatted date: "YYYY-MM-DD". Return true if the query date is not in the past of the starting date.
+	is_not_past("2020-08-07", "2020-08-01") --> true
+	is_not_past("2020-08-07", "2020-09-01") --> false
+	"""
 
 	if starting_date == 'today':
 
@@ -106,11 +114,3 @@ def is_today(date):
 	if date == current_date():
 		return True
 	return False
-
-def is_day_trade(option):
-	"""Takes in an option object, and returns whether or not selling that option will be a day trade."""
-	if is_today(option.purchase_date):
-		return True
-
-	return False
-

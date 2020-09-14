@@ -362,7 +362,7 @@ def find_instrument_data(query):
         print('No results found for that keyword')
         return([None])
     else:
-        print('Found ' + str(len(data)) + ' results')
+        # print('Found ' + str(len(data)) + ' results')
         return(data)
 
 

@@ -3,6 +3,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
 from options import *
 from Utils import login
+from Utils.datetime_funcs import *
 import json
 import holidays
 
@@ -183,19 +184,6 @@ def new_basic_data_for_option(json_data, option, date_list):
 					basic_market_data = formatted["basic_market_data"]
 					option[trade_date] = basic_market_data
 
-			else:
-
-				errors = read_json("optionJSON/errors.json")
-				if errors[symbol]:
-					if errors[symbol][trade_date]:
-						errors[symbol][trade_date].append(option_id)
-					else:
-						errors[symbol][trade_data] = [option_id]
-
-				else:
-					errors[symbol] = {trade_date: [option_id]}
-
-
 
 def new_basic_data_for_expiration(json_data, expiration, date_list):
 	"""Updates the data for each date in the DATE_LIST for all options with a given EXPIRATION date in a given JSON_DATA set."""
@@ -235,7 +223,6 @@ def update_all_basic_data(date_list, symbols=[]):
 
 			print("Starting data collection for {}".format(symbol))
 			json_data = get_json_object(symbol)
-			print(date_list)
 			new_basic_data(symbol, json_data, date_list)
 
 
@@ -366,6 +353,7 @@ def daily_update(date_list, symbols = []):
 
 		symbols = list_tracked_stocks()
 
+	print(date_list)
 	update_all_basic_data(date_list, symbols)
 	update_expirations_for_all(symbols)
 	update_strikes_for_all(symbols)
@@ -410,6 +398,65 @@ def check_all_data(symbols=[]):
 		error_count = check_data(symbol)
 		if error_count == 0: 
 			print("No errors found for " + symbol)
+
+def remove_invalid_dates_for_option(option):
+
+	option_id = option["id"]
+	option_keys = list(option.keys())
+
+	if "scrubbed" not in option_keys:
+
+		instrument_data = instrument_data_by_id(option_id)
+
+		if instrument_data:
+			
+			date_created = instrument_data["created_at"][:10]
+			time_created = float(utc_to_military(instrument_data["created_at"][11:16]))
+
+
+			for date in [date for date in option_keys if date != "id"]:
+
+				if not is_not_past(date, date_created):
+
+					del option[date]
+
+				elif (date_created == date):
+
+					if time_created >= 630:
+
+						del option[date]
+
+			option["scrubbed"] = "complete"
+
+		
+
+def remove_invalid_dates_for_expiration(json_data, expiration):
+
+	for option in option_generator_for_expiration(json_data, expiration):
+
+		remove_invalid_dates_for_option(option)
+
+def remove_invalid_dates_from_json(json_data):
+
+	for expiration in expiration_generator(json_data):
+
+		remove_invalid_dates_for_expiration(json_data, expiration)
+
+def remove_all_invalid_dates(symbols = []):
+
+	if not symbols:
+
+		symbols = list_tracked_stocks()
+
+	for symbol in symbols:
+
+		print("Removing invalid data for " + symbol)
+		data = get_json_object(symbol)
+		remove_invalid_dates_from_json(data)
+		print("Saving scrubbed data for " + symbol)
+		dump_json(data, json_filename(symbol))
+
+
 
 		
 def init_stock(symbol):
