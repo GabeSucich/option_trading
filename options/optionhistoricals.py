@@ -1,6 +1,3 @@
-import os, sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-
 from options import *
 from Utils import login
 from Utils.datetime_funcs import *
@@ -31,7 +28,7 @@ def dump_json(updated_dict, filename):
 	return "{0} successfully updated".format(filename)
 
 def list_tracked_stocks():
-	"""Returns a list of all stock symbols for the stocks being tracker"""
+	"""Returns a list of all stock symbols for the stocks being tracked."""
 	data = read_json("optionJSON/tracked_stocks.json")
 	return list(data.keys())
 
