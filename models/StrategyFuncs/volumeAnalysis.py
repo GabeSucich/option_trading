@@ -56,8 +56,7 @@ def volumeAnalysis(sellParams, buyParams, recordLength, simulation):
 			for option in stockPortfolio.options:
 
 				if option.isActive() and (option.percentChange > 30 or option.percentChange < -20):
-					print("selling option")
-					print(option.percentChange)
+					
 					stockPortfolio.sellOption(option)
 					
 					
@@ -89,12 +88,8 @@ def volumeAnalysisDrops(sellParams, vg, sp, sg, sc, sj, stockPortfolio):
 
 	if checkSellCriteria():
 
-		print(vg, sp, sg, sc, sj)
-
 		purchaseMax = stockPortfolio.availableCash/2
 
-		
-		print("Sell trigger")
 		stockPortfolio.purchaseShortestPut(purchaseMax)
 
 def volumeAnalysisJumps(buyParams, vg, bp, bg, bc, bj, stockPortfolio):

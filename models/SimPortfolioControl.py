@@ -204,7 +204,7 @@ class StockPortfolio:
 
 				price = eval(price)
 
-			print(price)
+			
 			if purchaseMax >= price*100:
 
 				quantity = purchaseMax//(100*price)
@@ -224,7 +224,7 @@ class StockPortfolio:
 
 				price = eval(price) 
 
-			print(price)
+			
 			if purchaseMax >= price*100:
 
 				quantity = purchaseMax//(price*100)
@@ -245,14 +245,15 @@ class StockPortfolio:
 		
 		purchaseCost = quantity*(optionData[self.currentDate][roundedTime]["open_price"])*100
 
-		print(purchaseCost, self.availableCash)
 		if purchaseCost >= self.availableCash:
 
 			print("Not enough to purchase this option!")
 			return
 		
+		print("Purchasing " + optionType)
 		self.options.append( Option(optionType, strikePrice, expirationDate, quantity, optionData, self.currentDate, self.currentTime) )
 		self.purchaseUpdate(purchaseCost)
+
 
 	def sellOption(self, option):
 
@@ -260,9 +261,10 @@ class StockPortfolio:
 
 		if eval(self.currentTime) < eval(option.currentTime):
 
-			print("Trying to sell in future. Not an error!")
 			return
 
+		print("Selling " + option.optionType)
+		print(option.percentChange)
 		sellAmt = option.totalValue
 		option.setInactive()
 		option.setSellDate()
