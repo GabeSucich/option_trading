@@ -42,7 +42,6 @@ class Simulation:
 		dateInfo = self.calendar.getNextPoint()
 		if dateInfo:
 			[date, time] = dateInfo
-			print(date, time)
 			self.currentDate, self.currentTime = date, time
 			self.updatePortfolio()
 		else:

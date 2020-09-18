@@ -119,7 +119,7 @@ class StockPortfolio:
 	def saleUpdate(self, sellAmt):
 
 		self.invested -= sellAmt
-		self.mainPortfolio.decreaseInvested(sellCmt)
+		self.mainPortfolio.decreaseInvested(sellAmt)
 
 	def setOptionTimes(self):
 

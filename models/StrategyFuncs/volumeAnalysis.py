@@ -38,7 +38,7 @@ def volumeAnalysis(sellParams, buyParams, recordLength, simulation):
 
 			
 			if eval(simulation.currentTime) <= 1230: 
-				
+
 				[sellPressureGradient, sellPressureConcavity, sellPressureJerk] = desctructureCubic(cubicRegression(currentRecords, "sellPressure"))
 				buyPressureGradient, buyPressureConcavity, buyPressureJerk = -sellPressureGradient, -sellPressureConcavity, -sellPressureJerk
 
@@ -52,6 +52,15 @@ def volumeAnalysis(sellParams, buyParams, recordLength, simulation):
 				if buyParams:
 
 					volumeAnalysisJumps(buyParams, normalizedVolumeGradient, buyPressure, buyPressureGradient, buyPressureConcavity, buyPressureJerk, stockPortfolio)
+
+			for option in stockPortfolio.options:
+
+				if option.isActive() and (option.percentChange > 30 or option.percentChange < -20):
+					print("selling option")
+					print(option.percentChange)
+					stockPortfolio.sellOption(option)
+					
+					
 
 
 def createRecords(simulation):
@@ -84,7 +93,7 @@ def volumeAnalysisDrops(sellParams, vg, sp, sg, sc, sj, stockPortfolio):
 
 		purchaseMax = stockPortfolio.availableCash/2
 
-		print(purchaseMax)
+		
 		print("Sell trigger")
 		stockPortfolio.purchaseShortestPut(purchaseMax)
 
