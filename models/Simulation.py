@@ -39,21 +39,25 @@ class Simulation:
 
 	def getNextPoint(self):
 
-		[date, time] = self.calendar.getNextPoint()
-		self.currentDate, self.currentTime = date, time
-		self.updatePortfolio()
+		dateInfo = self.calendar.getNextPoint()
+		if dateInfo:
+			[date, time] = dateInfo
+			print(date, time)
+			self.currentDate, self.currentTime = date, time
+			self.updatePortfolio()
+		else:
+			print("Simulation Finished!")
 
 	def runSimulation(self):
 
 		while not self.calendar.finished:
 			
 			self.stratFunc(*self.stratParams, self)
+			
+			self.getNextPoint()
 
-			try:
-				self.getNextPoint()
 
-			except:
-				print("Simulation complete!")
+			
 
 			
 

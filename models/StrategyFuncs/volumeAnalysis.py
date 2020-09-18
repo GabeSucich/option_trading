@@ -3,6 +3,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
 from volumeAnalysisUtils import *
+from Utils.datetime_funcs import *
 
 def volumeAnalysis(sellParams, buyParams, recordLength, simulation):
 
@@ -16,6 +17,10 @@ def volumeAnalysis(sellParams, buyParams, recordLength, simulation):
 	if not simulation.persistentVariables:
 
 		createRecords(simulation)
+
+	if simulation.currentTime == "630":
+
+		refreshRecords(simulation)
 
 	for stockPortfolio in list(simulation.portfolio.stockPortfolios.values()):
 
@@ -31,6 +36,8 @@ def volumeAnalysis(sellParams, buyParams, recordLength, simulation):
 
 		if len(currentRecords) >= recordLength:
 
+			
+
 			[sellPressureGradient, sellPressureConcavity, sellPressureJerk] = desctructureCubic(cubicRegression(currentRecords, "sellPressure"))
 			buyPressureGradient, buyPressureConcavity, buyPressureJerk = -sellPressureGradient, -sellPressureConcavity, -sellPressureJerk
 
@@ -45,16 +52,18 @@ def volumeAnalysis(sellParams, buyParams, recordLength, simulation):
 
 				volumeAnalysisJumps(buyParams, normalizedVolumeGradient, buyPressure, buyPressureGradient, buyPressureConcavity, buyPressureJerk, stockPortfolio)
 
-	return
 
 def createRecords(simulation):
 
 	simulation.persistentVariables["records"] = {}
 
+	refreshRecords(simulation)
+
+def refreshRecords(simulation):
+
 	for stockPortfolio in list(simulation.portfolio.stockPortfolios.values()):
 
 		simulation.persistentVariables["records"][stockPortfolio.symbol] = []
-
 
 def volumeAnalysisDrops(sellParams, vg, sp, sg, sc, sj, stockPortfolio):
 
@@ -62,7 +71,7 @@ def volumeAnalysisDrops(sellParams, vg, sp, sg, sc, sj, stockPortfolio):
 
 	def checkSellCriteria():
 
-		if (vg >= csvg and sp >= csp and sg >= csg and sc >= csc and sj >= csj):
+		if (vg >= csvg and sp <= csp and sg >= csg and sc >= csc and sj >= csj):
 
 			return True
 
@@ -70,7 +79,13 @@ def volumeAnalysisDrops(sellParams, vg, sp, sg, sc, sj, stockPortfolio):
 
 	if checkSellCriteria():
 
+		print(vg, sp, sg, sc, sj)
+
+		purchaseMax = stockPortfolio.availableCash/2
+
+		print(purchaseMax)
 		print("Sell trigger")
+		stockPortfolio.purchaseShortestPut(purchaseMax)
 
 def volumeAnalysisJumps(buyParams, vg, bp, bg, bc, bj, stockPortfolio):
 
@@ -78,7 +93,7 @@ def volumeAnalysisJumps(buyParams, vg, bp, bg, bc, bj, stockPortfolio):
 
 	def checkBuyCriteria():
 
-		if (bg >= cbvg and bp >= cbp and bg >= cbg and bc >= cbc and bj >= cbj):
+		if (bg >= cbvg and bp <= cbp and bg >= cbg and bc >= cbc and bj >= cbj):
 
 			return True
 
@@ -86,7 +101,9 @@ def volumeAnalysisJumps(buyParams, vg, bp, bg, bc, bj, stockPortfolio):
 
 	if checkBuyCriteria():
 
-		print("Buy Trigger")
+		purchaseMax = stockPortfolio.availableCash/2
+
+		stockPortfolio.purchaseShortestCall(purchaseMax)
 
 
 def getSellPressure(stock, intervalSize):
