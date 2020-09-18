@@ -37,20 +37,21 @@ def volumeAnalysis(sellParams, buyParams, recordLength, simulation):
 		if len(currentRecords) >= recordLength:
 
 			
+			if eval(simulation.currentTime) <= 1230: 
+				
+				[sellPressureGradient, sellPressureConcavity, sellPressureJerk] = desctructureCubic(cubicRegression(currentRecords, "sellPressure"))
+				buyPressureGradient, buyPressureConcavity, buyPressureJerk = -sellPressureGradient, -sellPressureConcavity, -sellPressureJerk
 
-			[sellPressureGradient, sellPressureConcavity, sellPressureJerk] = desctructureCubic(cubicRegression(currentRecords, "sellPressure"))
-			buyPressureGradient, buyPressureConcavity, buyPressureJerk = -sellPressureGradient, -sellPressureConcavity, -sellPressureJerk
+				volumeGradient = linearRegression(currentRecords, "volume")
+				normalizedVolumeGradient = volumeGradient*100/(currentRecords[0]["volume"])
 
-			volumeGradient = linearRegression(currentRecords, "volume")
-			normalizedVolumeGradient = volumeGradient*100/(currentRecords[0]["volume"])
+				if sellParams:
 
-			if sellParams:
+					volumeAnalysisDrops(sellParams, normalizedVolumeGradient, sellPressure, sellPressureGradient, sellPressureConcavity, sellPressureJerk, stockPortfolio)
 
-				volumeAnalysisDrops(sellParams, normalizedVolumeGradient, sellPressure, sellPressureGradient, sellPressureConcavity, sellPressureJerk, stockPortfolio)
+				if buyParams:
 
-			if buyParams:
-
-				volumeAnalysisJumps(buyParams, normalizedVolumeGradient, buyPressure, buyPressureGradient, buyPressureConcavity, buyPressureJerk, stockPortfolio)
+					volumeAnalysisJumps(buyParams, normalizedVolumeGradient, buyPressure, buyPressureGradient, buyPressureConcavity, buyPressureJerk, stockPortfolio)
 
 
 def createRecords(simulation):
