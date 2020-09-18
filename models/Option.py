@@ -12,12 +12,16 @@ class Option:
 		self.expirationDate = expirationDate
 		self.strikePrice = strikePrice
 		self.optionData = optionData
+		self.purchaseDate = currentDate
+		self.purchaseTime = currentTime
 		self.currentDate = currentDate
 		self.currentTime = po.roundTimeUp(currentTime)
 		self.cost = self.openPrice
 		self.quantity = quantity
 		self.active = True
 		self.sellDate = None
+		self.history = []
+		self.history.append({"date": self.currentDate, "time": self.currentTime, "value": self.price, "percentChange": self.percentChange})
 
 	def processOptionData(self, optionData):
 
@@ -45,15 +49,24 @@ class Option:
 
 		self.currentDate = date
 		lastValidTime = po.roundTimeDown(time)
-		if lastValidTime > self.currentTime:
-
-			self.currentTime = lastValidTime
 
 		if not is_future(self.expirationDate, self.currentDate):
 
 			self.currentDate = None
 			self.currentTime = None
 			self.setInactive()
+			return
+
+		if lastValidTime > self.currentTime:
+
+			self.currentTime = lastValidTime
+			self.updateHistory()
+
+
+		
+	def updateHistory(self):
+
+		self.history.append({"date": self.currentDate, "time": self.currentTime, "value": self.price, "percentChange": self.percentChange})
 
 	def isActive(self):
 		if self.active:
@@ -96,48 +109,72 @@ class Option:
 	def openPrice(self):
 		if not self.currentDate:
 			return 0
+		try:
 
-		if not self.currentTime:
-			return po.wholeDayOpenPrice(self.optionData, self.currentDate)*100
+			if not self.currentTime:
+				return po.wholeDayOpenPrice(self.optionData, self.currentDate)*100
 
-		return po.intervalOpenPrice(self.optionData, self.currentDate, self.currentTime)*100
+			return po.intervalOpenPrice(self.optionData, self.currentDate, self.currentTime)*100
+
+		except:
+			return 0
 
 	@property
 	def closePrice(self):
 		if not self.currentDate:
 			return 0
 
-		if not self.currentTime:
-			return po.wholeDayClosePrice(self.optionData, self.currentDate)*100
+		try:
+			if not self.currentTime:
+				return po.wholeDayClosePrice(self.optionData, self.currentDate)*100
 
-		return po.intervalClosePrice(self.optionData, self.currentDate, self.currentTime)*100
+			return po.intervalClosePrice(self.optionData, self.currentDate, self.currentTime)*100
+		except:
+			return 0
 
 	@property
 	def highPrice(self):
 		if not self.currentDate:
 			return 0
 
-		if not self.currentTime:
-			return po.wholeDayHighPrice(self.optionData, self.currentDate)*100
+		try:
 
-		return po.intervalHighPrice(self.optionData, self.currentDate, self.currentTime)*100
+			if not self.currentTime:
+				return po.wholeDayHighPrice(self.optionData, self.currentDate)*100
+
+			return po.intervalHighPrice(self.optionData, self.currentDate, self.currentTime)*100
+
+		except:
+
+			return 0
 
 	@property
 	def lowPrice(self):
 		if not self.currentDate:
 			return 0
 
-		if not self.currentTime:
-			return po.wholeDayLowPrice(self.optionData, self.currentDate)*100
+		try:
+			if not self.currentTime:
+				return po.wholeDayLowPrice(self.optionData, self.currentDate)*100
 
-		return po.intervalLowPrice(self.optionData, self.currentDate, self.currentTime)*100
+			return po.intervalLowPrice(self.optionData, self.currentDate, self.currentTime)*100
+
+		except:
+
+			return 0
 
 	@property
 	def volume(self):
 		if not self.currentDate:
 			return 0
 
-		if not self.currentTime:
-			return po.wholeDayVolume(self.optionData, self.currentDate)
+		try:
 
-		return po.intervalVolume(self.optionData, self.currentDate, self.currentTime)
+			if not self.currentTime:
+				return po.wholeDayVolume(self.optionData, self.currentDate)
+
+			return po.intervalVolume(self.optionData, self.currentDate, self.currentTime)
+
+		except:
+
+			return 0
