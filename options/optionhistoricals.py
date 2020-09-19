@@ -425,7 +425,30 @@ def remove_invalid_dates_for_option(option):
 
 			option["scrubbed"] = "complete"
 
-		
+def remove_date_from_option(option, date):
+
+	if date in option:
+
+		del option[date]
+
+def remove_date_from_historicals(historicals, date):
+
+	for option in option_generator(historicals):
+
+		remove_date_from_option(option, date)
+
+def remove_date(date, symbols = []):
+
+	if not symbols:
+
+		symbols = list_tracked_stocks()
+
+	for symbol in symbols:
+
+		historicals = get_json_object(symbol)
+		remove_date_from_historicals(historicals, date)
+		dump_json(historicals, json_filename(symbol))
+
 
 def remove_invalid_dates_for_expiration(json_data, expiration):
 
