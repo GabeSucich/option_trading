@@ -15,9 +15,9 @@ def init_stock(symbol):
 
 	tracked_stocks_data = read_json("stockJSON/tracked_stocks.json")
 
-	# if symbol in list(tracked_stocks_data.keys()):
-	# 	print("Already tracking " + symbol)
-	# 	return
+	if symbol in list(tracked_stocks_data.keys()):
+		print("Already tracking " + symbol)
+		return
 
 	tracked_stocks_data[symbol] = instrument_data
 	dump_json(tracked_stocks_data, "stockJSON/tracked_stocks.json")

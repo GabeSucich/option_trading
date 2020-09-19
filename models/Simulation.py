@@ -15,14 +15,15 @@ from Option import *
 import StrategyFuncs
 from StrategyFuncs.volumeAnalysis import volumeAnalysis
 
-def prepareSimulationSymbols(symbolList):
-	symbols, stocks, options = [], [], []
-	for symbol in symbolList:
-		symbols.append(symbol)
+def prepareSimulationSymbols(*symbols):
+
+	symbolList, stocks, options = [], [], []
+	for symbol in symbols:
+		symbolList.append(symbol)
 		stocks.append(get_stock_json_object(symbol))
 		options.append(get_option_json_object(symbol))
 
-	return [symbols, stocks, options]
+	return [symbolList, stocks, options]
 
 
 class Simulation:
