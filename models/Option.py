@@ -52,8 +52,6 @@ class Option:
 
 		if not is_future(self.expirationDate, self.currentDate):
 
-			self.currentDate = None
-			self.currentTime = None
 			self.setInactive()
 			return
 

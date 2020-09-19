@@ -15,6 +15,15 @@ from Option import *
 import StrategyFuncs
 from StrategyFuncs.volumeAnalysis import volumeAnalysis
 
+def prepareSimulationSymbols(symbolList):
+	symbols, stocks, options = [], [], []
+	for symbol in symbolList:
+		symbols.append(symbol)
+		stocks.append(get_stock_json_object(symbol))
+		options.append(get_option_json_object(symbol))
+
+	return [symbols, stocks, options]
+
 
 class Simulation:
 
@@ -27,11 +36,16 @@ class Simulation:
 		self.calendar = SimCalendar(self.dateList, self.timeStep)
 		self.currentDate = self.calendar.currentDate
 		self.currentTime = self.calendar.currentTime
+		self.history = []
 
 		self.portfolio = SimPortfolioControl(symbolList, historicalsList, optionHistoricalsList, investment, self.currentDate, self.currentTime)
 		
 	
 		self.persistentVariables = {}
+
+	def stockProfile(self, symbol):
+
+		return self.portfolio.stockProfile(symbol)
 
 	def createDateList(self, sampleHistoricals):
 
@@ -52,17 +66,14 @@ class Simulation:
 		while not self.calendar.finished:
 			
 			self.stratFunc(*self.stratParams, self)
+			self.updateHistory()
 			
 			self.getNextPoint()
 
 
-			
+	def updateHistory(self):
 
-			
-
-
-
-
+		self.history.append({"date": self.currentDate, "time": self.currentTime, "totalValue": self.portfolio.totalValue})
 
 	def updatePortfolio(self):
 

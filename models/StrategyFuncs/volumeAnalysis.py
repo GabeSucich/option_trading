@@ -37,27 +37,27 @@ def volumeAnalysis(sellParams, buyParams, recordLength, simulation):
 		if len(currentRecords) >= recordLength:
 
 			
-			if eval(simulation.currentTime) <= 1230: 
+			# if eval(simulation.currentTime) <= 1230: 
 
-				[sellPressureGradient, sellPressureConcavity, sellPressureJerk] = desctructureCubic(cubicRegression(currentRecords, "sellPressure"))
-				buyPressureGradient, buyPressureConcavity, buyPressureJerk = -sellPressureGradient, -sellPressureConcavity, -sellPressureJerk
+			[sellPressureGradient, sellPressureConcavity, sellPressureJerk] = desctructureCubic(cubicRegression(currentRecords, "sellPressure"))
+			buyPressureGradient, buyPressureConcavity, buyPressureJerk = -sellPressureGradient, -sellPressureConcavity, -sellPressureJerk
 
-				volumeGradient = linearRegression(currentRecords, "volume")
-				normalizedVolumeGradient = volumeGradient*100/(currentRecords[0]["volume"])
+			volumeGradient = linearRegression(currentRecords, "volume")
+			normalizedVolumeGradient = volumeGradient*100/(currentRecords[0]["volume"])
 
-				if sellParams:
+			if sellParams:
 
-					volumeAnalysisDrops(sellParams, normalizedVolumeGradient, sellPressure, sellPressureGradient, sellPressureConcavity, sellPressureJerk, stockPortfolio)
+				volumeAnalysisDrops(sellParams, normalizedVolumeGradient, sellPressure, sellPressureGradient, sellPressureConcavity, sellPressureJerk, stockPortfolio)
 
-				if buyParams:
+			if buyParams:
 
-					volumeAnalysisJumps(buyParams, normalizedVolumeGradient, buyPressure, buyPressureGradient, buyPressureConcavity, buyPressureJerk, stockPortfolio)
+				volumeAnalysisJumps(buyParams, normalizedVolumeGradient, buyPressure, buyPressureGradient, buyPressureConcavity, buyPressureJerk, stockPortfolio)
 
-			for option in stockPortfolio.options:
+		for option in stockPortfolio.options:
 
-				if option.isActive() and (option.percentChange > 30 or option.percentChange < -20):
-					
-					stockPortfolio.sellOption(option)
+			if option.isActive() and (option.percentChange > 30 or option.percentChange < -20):
+				
+				stockPortfolio.sellOption(option)
 					
 					
 
@@ -88,7 +88,7 @@ def volumeAnalysisDrops(sellParams, vg, sp, sg, sc, sj, stockPortfolio):
 
 	if checkSellCriteria():
 
-		purchaseMax = stockPortfolio.availableCash/2
+		purchaseMax = stockPortfolio.availableCash/4
 
 		stockPortfolio.purchaseShortestPut(purchaseMax)
 
@@ -106,7 +106,7 @@ def volumeAnalysisJumps(buyParams, vg, bp, bg, bc, bj, stockPortfolio):
 
 	if checkBuyCriteria():
 
-		purchaseMax = stockPortfolio.availableCash/2
+		purchaseMax = stockPortfolio.availableCash/4
 
 		stockPortfolio.purchaseShortestCall(purchaseMax)
 

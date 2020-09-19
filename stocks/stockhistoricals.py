@@ -57,20 +57,25 @@ def update_data_for_date(symbol, date, json_data, historicals):
 	
 
 def update_data_for_all_new_dates(symbol, json_data):
+	try:
 
-	new_dates = []
+		new_dates = []
 
-	historicals = get_stock_historicals(symbol)
-	json_dates = list(json_data.keys())
+		historicals = get_stock_historicals(symbol)
+		json_dates = list(json_data.keys())
 
-	for data_point in historicals:
+		for data_point in historicals:
 
-		if data_point["date"] not in json_dates:
-			new_dates.append(data_point["date"])
+			if data_point["date"] not in json_dates:
+				new_dates.append(data_point["date"])
 
-	for date in new_dates:
+		for date in new_dates:
 
-		update_data_for_date(symbol, date, json_data, historicals)
+			update_data_for_date(symbol, date, json_data, historicals)
+
+	except:
+
+		pass
 
 
 def format_raw_data(raw_historicals):

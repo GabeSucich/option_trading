@@ -7,6 +7,7 @@ from Stock import *
 import options.processOptionHistoricals as po
 from Option import *
 
+
 class SimPortfolioControl:
 
 	def __init__(self, symbolList, historicalsList, optionHistoricalsList, investment, currentDate, currentTime):
@@ -33,9 +34,7 @@ class SimPortfolioControl:
 		self.invested += amt
 
 	def decreaseInvested(self, amt):
-		if amt > self.invested:
-			print("You cannot increase your cash by more than you have invested!")
-			return
+		
 		self.cash += amt
 		self.invested -= amt
 
@@ -94,6 +93,7 @@ class StockPortfolio:
 		self.currentDate = currentDate
 		self.currentTime = currentTime
 		self.options = []
+		self.stockHistory = []
 
 	@property
 	def availableCash(self):
@@ -147,6 +147,11 @@ class StockPortfolio:
 		self.stock.setTime(date, time)
 		self.setOptionTimes()
 		self.updateInvested()
+		self.updateStockHistory()
+
+	def updateStockHistory(self):
+
+		self.stockHistory.append({"date": self.currentDate, "time": self.currentTime, "price": self.stockPrice})
 
 
 	def getOptionData(self, optionType, expirationDate, strikePrice):
@@ -266,6 +271,7 @@ class StockPortfolio:
 		print("Selling " + option.optionType)
 		print(option.percentChange)
 		sellAmt = option.totalValue
+		print(option.totalValue)
 		option.setInactive()
 		option.setSellDate()
 		self.saleUpdate(sellAmt)
