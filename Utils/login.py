@@ -10,4 +10,4 @@ def login():
 	robin_stocks.login(data["username"], data["password"])
 	print("Logged In")
 
-# login()
+login()

@@ -6,6 +6,7 @@ from volumeAnalysisUtils import *
 from Utils.datetime_funcs import *
 
 def volumeAnalysis(sellParams, buyParams, recordLength, simulation):
+	
 
 	intervalSize = 1
 

@@ -194,50 +194,56 @@ class StockPortfolio:
 		
 	def shortestTermHelper(self, optionType, purchaseMax, interval=1):
 
-		if interval >= 5:
+		try:
+
+			if interval >= 5:
+
+				return None
+
+			if optionType == "call":
+
+				optionInfo = po.nearestCall(self.stockPrice, self.currentDate, self.optionHistoricals, interval)
+				expirationDate, strikePrice = optionInfo["expirationDate"], optionInfo["strikePrice"]
+				roundedTime = po.roundTimeUp(self.currentTime)
+				price = self.optionHistoricals[expirationDate]["calls"][strikePrice][self.currentDate][roundedTime]["open_price"]
+
+				if type(price) == str:
+
+					price = eval(price)
+
+				
+				if purchaseMax >= price*100:
+
+					quantity = purchaseMax//(100*price)
+					return ["call", expirationDate, strikePrice, quantity]
+
+				else:
+
+					return self.shortestTermHelper("call", purchaseMax, interval = interval + 1)
+
+			elif optionType == "put":
+
+				optionInfo = po.nearestPut(self.stockPrice, self.currentDate, self.optionHistoricals, interval)
+				expirationDate, strikePrice = optionInfo["expirationDate"], optionInfo["strikePrice"]
+				roundedTime = po.roundTimeUp(self.currentTime)
+				price = self.optionHistoricals[expirationDate]["puts"][strikePrice][self.currentDate][roundedTime]["open_price"]
+				if type(price) == str:
+
+					price = eval(price) 
+
+				
+				if purchaseMax >= price*100:
+
+					quantity = purchaseMax//(price*100)
+					return ["put", expirationDate, strikePrice, quantity]
+
+				else:
+
+					return self.shortestTermHelper("put", purchaseMax, interval = interval + 1)
+
+		except:
 
 			return None
-
-		if optionType == "call":
-
-			optionInfo = po.nearestCall(self.stockPrice, self.currentDate, self.optionHistoricals, interval)
-			expirationDate, strikePrice = optionInfo["expirationDate"], optionInfo["strikePrice"]
-			roundedTime = po.roundTimeUp(self.currentTime)
-			price = self.optionHistoricals[expirationDate]["calls"][strikePrice][self.currentDate][roundedTime]["open_price"]
-
-			if type(price) == str:
-
-				price = eval(price)
-
-			
-			if purchaseMax >= price*100:
-
-				quantity = purchaseMax//(100*price)
-				return ["call", expirationDate, strikePrice, quantity]
-
-			else:
-
-				return self.shortestTermHelper("call", purchaseMax, interval = interval + 1)
-
-		elif optionType == "put":
-
-			optionInfo = po.nearestPut(self.stockPrice, self.currentDate, self.optionHistoricals, interval)
-			expirationDate, strikePrice = optionInfo["expirationDate"], optionInfo["strikePrice"]
-			roundedTime = po.roundTimeUp(self.currentTime)
-			price = self.optionHistoricals[expirationDate]["puts"][strikePrice][self.currentDate][roundedTime]["open_price"]
-			if type(price) == str:
-
-				price = eval(price) 
-
-			
-			if purchaseMax >= price*100:
-
-				quantity = purchaseMax//(price*100)
-				return ["put", expirationDate, strikePrice, quantity]
-
-			else:
-
-				return self.shortestTermHelper("put", purchaseMax, interval = interval + 1)
 
 
 	def purchaseOption(self, optionType, expirationDate, strikePrice, quantity):
@@ -271,7 +277,7 @@ class StockPortfolio:
 		print("Selling " + option.optionType)
 		print(option.percentChange)
 		sellAmt = option.totalValue
-		print(option.totalValue)
+		option.updateHistory()
 		option.setInactive()
 		option.setSellDate()
 		self.saleUpdate(sellAmt)
