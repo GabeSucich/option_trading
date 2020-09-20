@@ -13,6 +13,7 @@ from Stock import *
 from Option import *
 
 import StrategyFuncs
+from StrategyFuncs.Samtest import Samtest
 from StrategyFuncs.volumeAnalysis import volumeAnalysis
 
 def prepareSimulationSymbols(*symbols):
