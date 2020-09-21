@@ -28,12 +28,14 @@ def prepareSimulationSymbols(*symbols):
 
 class Simulation:
 
-	def __init__(self, symbolList, historicalsList, optionHistoricalsList, investment, timeStep, stratFunc, stratParams):
+	def __init__(self, symbolList, historicalsList, optionHistoricalsList, investment, timeStep, stratFunc, stratParams, startDate = None, endDate = None):
 
 		self.timeStep = timeStep
 		self.stratFunc = stratFunc
 		self.stratParams = stratParams
-		self.dateList = self.createDateList(historicalsList[0])
+		self.dateList = Simulation.createDateList(historicalsList[0], startDate, endDate)
+		self.startDate = self.dateList[0]
+		self.endDate = self.dateList[-1]
 		self.calendar = SimCalendar(self.dateList, self.timeStep)
 		self.currentDate = self.calendar.currentDate
 		self.currentTime = self.calendar.currentTime
@@ -48,9 +50,9 @@ class Simulation:
 
 		return self.portfolio.stockProfile(symbol)
 
-	def createDateList(self, sampleHistoricals):
+	def createDateList(sampleHistoricals, startDate, endDate):
 
-		return [date for date in list(sampleHistoricals.keys())]
+		return [date for date in list(sampleHistoricals.keys()) if is_in_range(date, startDate, endDate)]
 
 	def getNextPoint(self):
 

@@ -55,7 +55,7 @@ class Option:
 			self.setInactive()
 			return
 
-		if lastValidTime > self.currentTime:
+		if eval(lastValidTime) > eval(self.currentTime) or lastValidTime == "630":
 
 			self.currentTime = lastValidTime
 			self.updateHistory()
@@ -90,7 +90,16 @@ class Option:
 
 		return (self.price - self.cost)*100/self.cost
 
+	@property
+	def finalPercentChange(self):
+		if self.isActive():
 
+			return None
+
+		else:
+
+			return self.history[-1]["percentChange"]
+	
 
 	@property
 	def price(self):
