@@ -277,7 +277,6 @@ class StockPortfolio:
 		print("Selling " + option.optionType)
 		print(option.percentChange)
 		sellAmt = option.totalValue
-		option.updateHistory()
 		option.setInactive()
 		option.setSellDate()
 		self.saleUpdate(sellAmt)

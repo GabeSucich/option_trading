@@ -1,226 +1,236 @@
 from Simulation import *
 import statistics
 import sys, os
+import random
+from LearnerParam import *
+
 
 class Learner:
 
-	def __init__(self, names, optimizationOrder, initalVals, minVals, maxVals, stopCrits, maxLoop, formatFunc, assessmentFunc, symbolData, investment, stepCount=10):
+	def __init__(self, names, initialVals, rangeSizes , formatFunc, assessmentFunc, symbolData, investment, maxLoop = 10, stepCount=10, stopCrit=.75):
 
 		self.symbolData = symbolData
-		self.optimizationOrder = optimizationOrder
+		self.initialVales = initialVals
+
+		self.optimizationOrder = [i for i in range(len(names))]
+
 		self.investment = investment
 		self.stepCount = stepCount
+		self.stopCrit = stopCrit
+
 		self.maxLoop = maxLoop
 		self.formatFunc = formatFunc
 		self.assessmentFunc = assessmentFunc
-		self.names = names
-		self.params = self.createParamsObj(names, initalVals, minVals, maxVals, stopCrits)
+
+		self.bestResults = []
 		self.bestParams = []
-
-	def createParamsObj(self, names, initialVals, minVals, maxVals, stopCrits):
-
-		paramObj = {}
-
-		for i in range(len(names)):
-
-			index, name, initial, maximum, minimum, stopCrit = str(i), names[i], initialVals[i], maxVals[i], minVals[i], stopCrits[i]
-			valRange = maximum - minimum
-			params = self.getParamRange(initial, valRange)
-			paramObj[name] = {"initial": initial, "range": params, "rangeSize": valRange, "best": None, "prev3": [], "stopCrit": stopCrit, "locked": False }
-
-		return paramObj
+		self.bestRunningValue = investment
+		
+		self.params = self.createParamsObj(names, initialVals, rangeSizes)
 
 
-	def getParamRange(self, middleVal, valRangeSize):
+	@property
+	def stopCritMet(self):
 
-		params = []
-		interval = valRangeSize / self.stepCount
-		halfCount = self.stepCount // 2
+		if len(self.bestResults) == 5 and variation(self.bestResults) < self.stopCrit:
 
-		for i in range(-halfCount, halfCount + 1):
+			return True
 
-			params.append(middleVal + i*interval)
+		return False
+
+	def createParamsObj(self, names, initialVals, rangeSizes):
+
+		params = {}
+
+		for i, name in enumerate(names):
+
+			params[str(i)] = Param(name, initialVals[i], rangeSizes[i], self.stopCrit, self.stepCount)
 
 		return params
 
-	def updateParam(self, name):
+	def createParamSets(self, paramIndex):
 
-		param = self.params[name]
-		newInitial = param["best"]
-		newRangeSize = (param["rangeSize"] / 2)
-
-		self.addToPrev3(param, newInitial)
-
-		param["initial"] = newInitial
-		param["range"] = self.getParamRange(newInitial, newRangeSize)
-		param["rangeSize"] = newRangeSize
-
-		prev3 = param["prev3"]
-		if len(prev3) == 3:
-			if averageZScore(prev3) < param["stopCrit"]:
-				param["locked"] = True
-
-	def unlockParams(self):
-
-		for param in self.params.values():
-
-			param["locked"] = False
-
-	def resetRangesAndPrev(self):
-
-		for key in self.params.keys():
-
-			param = self.params[key]
-			param["rangeSize"] = min(10*param["rangeSize"], 20)
-			param["range"] = self.getParamRange(param["initial"], param["rangeSize"])
-			param["prev3"] = []
-
-
-
-	def optimizeParam(self, variableParamName):
-
-		print("Optimizing " + variableParamName)
-		param = self.params[variableParamName]
-
-		for i in range(self.maxLoop):
-
-			self.optimizeParamForRange(variableParamName)
-			if param["locked"]:
-				print(variableParamName + " optimized!")
-				return
-
-		print("Optimization for " + variableParamName + " did not converge")
-
-	def optimizeAllParams(self):
-
-		paramNames = list(self.params.keys())
-		for i in self.optimizationOrder:
-
-			self.optimizeParam(paramNames[i])
-
-
-	def optimizeNTimes(self, N):
-
-		for i in range(N):
-
-			if i > 0:
-				self.resetRangesAndPrev()
-				self.unlockParams()
-
-			self.optimizeAllParams()
-
-
-
-	def optimizeParamForRange(self, variableParamName):
-
-		paramSets = self.createParamSets(variableParamName)
-		variableIndex = list(self.params.keys()).index(variableParamName)
-		param = self.params[variableParamName]
-		bestValue = self.assessmentFunc(self.symbolData, self.investment, paramSets, self.formatFunc, variableIndex)
-
-		if bestValue:
-
-			param["best"] = bestValue
-			self.updateParam(variableParamName)
-
-		else:
-
-			param["best"] = param["initial"]
-			param["locked"] = True
-
-
-	def createParamSets(self, variableParamName):
-
-		variableParam = self.params[variableParamName]
-		numParams = len(variableParam["range"])
-		variableIndex = list(self.params.keys()).index(variableParamName)
-
-
-		paramSets = [[] for i in range(numParams)]
+		param = self.paramByIndex(paramIndex)
+		paramSets = [[] for i in range(len(param.range))]
 
 		for i, param in enumerate(self.params.values()):
 
-			if i == variableIndex:
+			for j in range(len(paramSets)):
 
-				for j, paramVal in enumerate(param["range"]):
+				if i == paramIndex:
 
-					paramSets[j].append(paramVal)
+					paramSets[j].append(param.range[j])
+
+				else:
+
+					paramSets[j].append(param.initial)
+
+		return paramSets
+
+	
+	def testParamRange(self, paramIndex):
+
+		paramSets = self.createParamSets(paramIndex)
+		param = self.paramByIndex(paramIndex)
+
+		bestValue = None
+		bestParamSet = None
+		foundChange = False
+
+		for paramSet in paramSets:
+			
+			result = self.assessmentFunc(self.symbolData, self.investment, paramSet, self.formatFunc)
+				
+			print(result)
+			if not bestValue:
+
+				bestValue = result
+				if result > self.bestRunningValue:
+
+					self.bestRunningValue = result
+					foundChange = True
+					bestParamSet = paramSet
 
 			else:
 
-				for paramSet in paramSets:
+				if result > bestValue:
 
-					paramSet.append(param["initial"])
-		
-		return paramSets
+					foundChange = True
+					bestValue = result
+					bestParamSet = paramSet
+	
 
+		if not bestParamSet:
 
-	def addToPrev3(self, param, val):
-		prev3 = param["prev3"]
-		if len(prev3) == 3:
-			prev3.pop(0)
-			prev3.append(val)
+			param.didNotOptimize()
+
 		else:
-			prev3.append(val)
+
+			param.foundBest(bestParamSet[paramIndex])
+
+	def optimizeParam(self, paramIndex):
+
+		param = self.paramByIndex(paramIndex)
+
+		print("Optimizing " + param.name)
+
+		loopCounter = 0
+
+		while not param.locked and loopCounter < self.maxLoop:
+
+			self.testParamRange(paramIndex)
+			loopCounter += 1
+
+		if loopCounter == self.maxLoop:
+
+			print("Optimization for " + param.name + " did not converge.")
+
+	def unlockAllParams(self):
+
+		for param in self.params.values():
+
+			param.unlock()
+
+	def optimizeAllParamsOnce(self):
+
+		self.unlockAllParams()
+
+		self.shuffleOptimizationOrder()
+
+		for index in self.optimizationOrder:
+
+			self.optimizeParam(index)
+
+
+	def noOptimizationReset(self):
+
+		for param in self.params.values():
+
+			param.fullReset()
 		
 
+	def optimizeAllParams(self):
 
-def averageZScore(data):
+		loopCounter = 0
 
+		while loopCounter < self.maxLoop:
 
-	stdev = statistics.stdev(data)
+			self.optimizeAllParamsOnce()
 
-	if stdev == 0:
+			newBestParams = self.getBestParams()
 
-		return 0
+			result = self.evaluateParams(newBestParams)
 
-	mean = statistics.mean(data)
-	zScores = [abs(value - mean)/stdev for value in data]
-	return statistics.mean(zScores)
+			if result == self.investment:
 
-
-def volumeAnalysisPutsFormat(a, b, c, d, e):
-
-	return [[a, b, c, d, e], [], 10]
-
-def volumeAnalysisCallsFormat(a, b, c, d, e):
-
-	return [[], [a, b, c, d, e], 10]
-
-def volumeAnalysisAssessment(symbolData, investment, paramSets, formatFunc, variableIndex):
-
-	maxValue = 0
-	bestParams = None
-	foundChange = False
-	firstValue = None
-
-	for paramSet in paramSets:
-
-		blockPrint()
-		sim = Simulation(*symbolData, investment, "fiveMinute", volumeAnalysis, formatFunc(*paramSet))
-		sim.runSimulation()
-		enablePrint()
-		totalValue = sim.portfolio.totalValue
-
-		if not firstValue:
-
-			firstValue = totalValue
-
-		if totalValue >= maxValue:
-
-			maxValue = totalValue
-			bestParams = paramSet
-
-		if totalValue != firstValue:
-
-			foundChange = True
+				self.noOptimizationReset()
 
 
-	print(maxValue)
+			else:
+				
 
-	if not foundChange:
-		return None
-	return bestParams[variableIndex]
+				self.updateBestResults(result)
+
+				if self.stopCritMet:
+
+					print("Optimization complete!")
+					return
+
+		print("Max loop was reached without convergence")
+
+	def getBestParams(self):
+
+		params = []
+
+		for param in self.params.values():
+
+			params.append(param.initial)
+
+		return params
+
+	def evaluateParams(self, bestParams):
+
+		return self.assessmentFunc(self.symbolData, self.investment, bestParams, self.formatFunc)
+
+		
+	def updateBestResults(self, result):
+
+			if len(self.bestResults) == 5:
+
+				self.bestResults = self.bestResults[1:].append(result)
+
+			else:
+
+				self.bestResults.append(result)
+
+
+	def paramByIndex(self, i):
+
+		return self.params[str(i)]
+
+	def shuffleOptimizationOrder(self):
+
+		random.shuffle(self.optimizationOrder)
+
+
+# -------------------------------------------------------------- #
+
+def volumeAnalysisPutsFormat(a, b, c, d, e, f, g):
+
+	return [[a, b, c, d, e], [], [f, g], 10]
+
+def volumeAnalysisCallsFormat(a, b, c, d, e, f, g):
+
+	return [[], [a, b, c, d, e], [f, g], 10]
+
+def volumeAnalysisAssessment(symbolData, investment, paramSet, formatFunc):
+
+	blockPrint()
+	sim = Simulation(*symbolData, investment, "fiveMinute", volumeAnalysis, formatFunc(*paramSet))
+	sim.runSimulation()
+	enablePrint()
+
+	return sim.portfolio.totalValue
 
 def testFormat(a, b):
 	return [a, b]

@@ -108,6 +108,24 @@ def is_not_past(query_date, starting_date='today'):
 
 	return False
 
+def is_in_range(query_date, start_date, end_date):
+
+	if not end_date and not start_date:
+
+		return True
+
+	elif not start_date:
+
+		return is_not_past(end_date, query_date)
+
+	elif not end_date:
+
+		return is_not_past(query_date, start_date)
+
+	else:
+
+		return is_not_past(query_date, start_date) and is_not_past(end_date, query_date)
+
 def is_today(date):
 	"""Takes in the string form of a date and returns whether or not that date is today."""
 	date = string_to_date(date)
