@@ -71,7 +71,7 @@ class Learner:
 		for key in self.params.keys():
 
 			param = self.params[key]
-			param["rangeSize"] = 3*param["best"]
+			param["rangeSize"] = min(10*param["rangeSize"], 20)
 			param["range"] = self.getParamRange(param["initial"], param["rangeSize"])
 			param["prev3"] = []
 
