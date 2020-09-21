@@ -11,9 +11,9 @@ from SimPortfolioControl import *
 from SimCalendar import *
 from Stock import *
 from Option import *
+from ProcessHistoricals import *
 
 import StrategyFuncs
-from StrategyFuncs.Samtest import Samtest
 from StrategyFuncs.volumeAnalysis import volumeAnalysis
 
 def prepareSimulationSymbols(*symbols):

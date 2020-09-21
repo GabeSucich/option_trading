@@ -20,6 +20,7 @@ class Option:
 		self.quantity = quantity
 		self.active = True
 		self.sellDate = None
+		self.sellTime = None
 		self.history = []
 		self.history.append({"date": self.currentDate, "time": self.currentTime, "value": self.price, "percentChange": self.percentChange})
 
@@ -41,9 +42,10 @@ class Option:
 
 		self.active = False
 
-	def setSellDate(self):
+	def setSellDateAndTime(self):
 
 		self.sellDate = self.currentDate
+		self.sellTime = self.currentTime
 
 	def setTime(self, date, time):
 
@@ -55,7 +57,7 @@ class Option:
 			self.setInactive()
 			return
 
-		if lastValidTime > self.currentTime:
+		if eval(lastValidTime) > eval(self.currentTime) or lastValidTime == "630":
 
 			self.currentTime = lastValidTime
 			self.updateHistory()
@@ -82,6 +84,12 @@ class Option:
 		return self.quantity*self.price
 
 	@property
+	def totalProfit(self):
+
+		return self.price - self.cost
+	
+
+	@property
 	def percentChange(self):
 
 		if not self.isActive():
@@ -90,8 +98,39 @@ class Option:
 
 		return (self.price - self.cost)*100/self.cost
 
+	@property
+	def finalPercentChange(self):
 
+		if self.isActive():
 
+			return self.history[-1]["percentChange"]
+
+		else:
+
+			return self.percentChange
+
+	@property
+	def finalDate(self):
+
+		if self.isActive():
+
+			return self.history[-1]["date"]
+
+		else:
+
+			return self.sellDate
+
+	@property
+	def finalTime(self):
+
+		if self.isActive():
+
+			return self.history[-1]["time"]
+
+		else:
+
+			return self.sellTime
+	
 	@property
 	def price(self):
 
