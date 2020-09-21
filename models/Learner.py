@@ -115,11 +115,18 @@ class Learner:
 
 		paramSets = self.createParamSets(variableParamName)
 		variableIndex = list(self.params.keys()).index(variableParamName)
+		param = self.params[variableParamName]
 		bestValue = self.assessmentFunc(self.symbolData, self.investment, paramSets, self.formatFunc, variableIndex)
 
-		param = self.params[variableParamName]
-		param["best"] = bestValue
-		self.updateParam(variableParamName)
+		if bestValue:
+
+			param["best"] = bestValue
+			self.updateParam(variableParamName)
+
+		else:
+
+			param["best"] = param["initial"]
+			param["locked"] = True
 
 
 	def createParamSets(self, variableParamName):
@@ -184,7 +191,8 @@ def volumeAnalysisAssessment(symbolData, investment, paramSets, formatFunc, vari
 
 	maxValue = 0
 	bestParams = None
-	foundDifference = False
+	foundChange = False
+	firstValue = None
 
 	for paramSet in paramSets:
 
@@ -194,12 +202,24 @@ def volumeAnalysisAssessment(symbolData, investment, paramSets, formatFunc, vari
 		enablePrint()
 		totalValue = sim.portfolio.totalValue
 
-		if totalValue > maxValue:
+		if not firstValue:
+
+			firstValue = totalValue
+
+		if totalValue >= maxValue:
 
 			maxValue = totalValue
 			bestParams = paramSet
 
+		if totalValue != firstValue:
+
+			foundChange = True
+
+
 	print(maxValue)
+
+	if not foundChange:
+		return None
 	return bestParams[variableIndex]
 
 def testFormat(a, b):
