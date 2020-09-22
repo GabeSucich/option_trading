@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from volumeAnalysisUtils import *
 from Utils.datetime_funcs import *
 
-def volumeAnalysis(sellParams, buyParams, recordLength, simulation):
+def volumeAnalysis(sellParams, buyParams, limitSells, recordLength, simulation):
 	
 
 	intervalSize = 1
@@ -56,7 +56,9 @@ def volumeAnalysis(sellParams, buyParams, recordLength, simulation):
 
 		for option in stockPortfolio.options:
 
-			if option.isActive() and (option.percentChange > 30 or option.percentChange < -20):
+			[upperLimitSell, lowerLimitSell] = limitSells
+
+			if option.isActive() and (option.percentChange > upperLimitSell or option.percentChange < lowerLimitSell):
 				
 				stockPortfolio.sellOption(option)
 					
