@@ -22,6 +22,10 @@ class SimPortfolioControl:
 		return self.cash + self.invested
 
 	@property
+	def totalProfit(self):
+		return self.totalValue - self.initialInvestment
+	
+	@property
 	def percentReturn(self):
 		return (self.totalValue - self.initialInvestment)*100/self.initialInvestment
 

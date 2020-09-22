@@ -101,13 +101,7 @@ class Option:
 	@property
 	def finalPercentChange(self):
 
-		if self.isActive():
-
-			return self.history[-1]["percentChange"]
-
-		else:
-
-			return self.percentChange
+		return self.history[-1]["percentChange"]
 
 	@property
 	def finalDate(self):
