@@ -32,7 +32,7 @@ class Learner:
 	@property
 	def stopCritMet(self):
 
-		if len(self.bestResults) == 5 and variation(self.bestResults) < self.stopCrit:
+		if len(self.bestResults) == 3 and variation(self.bestResults) < self.stopCrit:
 
 			return True
 
@@ -158,6 +158,7 @@ class Learner:
 			self.optimizeAllParamsOnce()
 
 			newBestParams = self.getBestParams()
+			self.bestParams = newBestParams
 
 			result = self.evaluateParams(newBestParams)
 
@@ -195,9 +196,10 @@ class Learner:
 		
 	def updateBestResults(self, result):
 
-			if len(self.bestResults) == 5:
+			if len(self.bestResults) == 3:
 
-				self.bestResults = self.bestResults[1:].append(result)
+				self.bestResults.pop(0)
+				self.bestResults.append(result)
 
 			else:
 
@@ -217,16 +219,16 @@ class Learner:
 
 def volumeAnalysisPutsFormat(a, b, c, d, e, f, g):
 
-	return [[a, b, c, d, e], [], [f, g], 10]
+	return [[a, b, c, d, e], [], [f, g], 20]
 
 def volumeAnalysisCallsFormat(a, b, c, d, e, f, g):
 
-	return [[], [a, b, c, d, e], [f, g], 10]
+	return [[], [a, b, c, d, e], [f, g], 20]
 
 def volumeAnalysisAssessment(symbolData, investment, paramSet, formatFunc):
 
 	blockPrint()
-	sim = Simulation(*symbolData, investment, "fiveMinute", volumeAnalysis, formatFunc(*paramSet))
+	sim = Simulation(*symbolData, investment, "fiveMinute", volumeAnalysis, formatFunc(*paramSet), startDate = "2020-08-31", endDate = "2020-09-09")
 	sim.runSimulation()
 	enablePrint()
 
