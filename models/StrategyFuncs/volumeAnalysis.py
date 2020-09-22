@@ -56,9 +56,13 @@ def volumeAnalysis(sellParams, buyParams, limitSells, recordLength, simulation):
 
 		for option in stockPortfolio.options:
 
-			[upperLimitSell, lowerLimitSell] = limitSells
+			[putUpperLimitSell, putLowerLimitSell, callUpperLimitSell, callLowerLimitSell] = limitSells
 
-			if option.isActive() and (option.percentChange > upperLimitSell or option.percentChange < lowerLimitSell):
+			if option.isActive() and option.optionType == "put" and (option.percentChange > putUpperLimitSell or option.percentChange < putLowerLimitSell):
+				
+				stockPortfolio.sellOption(option)
+
+			if option.isActive() and option.optionType == "call" and (option.percentChange > callUpperLimitSell or option.percentChange < callLowerLimitSell):
 				
 				stockPortfolio.sellOption(option)
 					
