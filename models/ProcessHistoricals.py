@@ -191,6 +191,10 @@ class ProcessHistoricals:
 			findPutPercentDecreases.append(put.finalPercentChange)
 		return putPercentDecreases
 
+	def percentGoodOptions(self):
+
+		return len(self.goodOptions)/(len(self.goodOptions) + len(self.badOptions))
+
 	def findPutPercentDecreasesForStock(self, sym):
 
 		return self.findStockHistoricalFromSym(sym).findPutPercentDecreases()
