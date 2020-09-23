@@ -7,7 +7,6 @@ from Utils.datetime_funcs import *
 
 def volumeAnalysis(sellParams, buyParams, limitSells, recordLength, simulation):
 	
-
 	intervalSize = 1
 
 	if simulation.timeStep == "fiveMinute":

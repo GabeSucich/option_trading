@@ -1,4 +1,5 @@
 from Simulation import *
+from DateSampler import *
 import statistics
 import sys, os
 import random
@@ -7,9 +8,10 @@ from LearnerParam import *
 
 class Learner:
 
-	def __init__(self, names, initialVals, rangeSizes , formatFunc, assessmentFunc, symbolData, investment, maxLoop = 10, stepCount=10, stopCrit=.75):
+	def __init__(self, names, initialVals, paramSigns, formatFunc, assessmentFunc, symbolData, investment, startDate = None, endDate = None, maxLoop = 10, stepCount=10, stopCrit=.75):
 
 		self.symbolData = symbolData
+
 		self.initialVales = initialVals
 
 		self.optimizationOrder = [i for i in range(len(names))]
@@ -24,27 +26,30 @@ class Learner:
 
 		self.bestResults = []
 		self.bestParams = []
-		self.bestRunningValue = investment
-		
-		self.params = self.createParamsObj(names, initialVals, rangeSizes)
+		self.bestRunningValue = 0
+
+		self.DateSampler = DateSampler(self.symbolData[1][0], startDate = startDate, endDate = endDate)
+		self.startDate, self.endDate = self.DateSampler.startDate, self.DateSampler.endDate
+
+		self.params = self.createParamsObj(names, initialVals, paramSigns)
 
 
 	@property
 	def stopCritMet(self):
 
-		if len(self.bestResults) == 3 and variation(self.bestResults) < self.stopCrit:
+		if len(self.bestResults) == 4 and variation(self.bestResults) < self.stopCrit:
 
 			return True
 
 		return False
 
-	def createParamsObj(self, names, initialVals, rangeSizes):
+	def createParamsObj(self, names, initialVals, paramSigns):
 
 		params = {}
 
 		for i, name in enumerate(names):
 
-			params[str(i)] = Param(name, initialVals[i], rangeSizes[i], self.stopCrit, self.stepCount)
+			params[str(i)] = Param(name, initialVals[i], paramSigns[i], self.stopCrit, self.stepCount)
 
 		return params
 
@@ -67,6 +72,17 @@ class Learner:
 
 		return paramSets
 
+	def runAssessment(self, paramSet):
+
+		total = 0
+		count = 0
+
+		for i in range(self.DateSampler.sampleNum):
+
+			total += self.assessmentFunc(self.symbolData, self.investment, paramSet, self.formatFunc, self.DateSampler.startDate(i), self.DateSampler.endDate(i))
+			count += 1
+
+		return total/count
 	
 	def testParamRange(self, paramIndex):
 
@@ -79,9 +95,8 @@ class Learner:
 
 		for paramSet in paramSets:
 			
-			result = self.assessmentFunc(self.symbolData, self.investment, paramSet, self.formatFunc)
+			result = self.runAssessment(paramSet)
 				
-			print(result)
 			if not bestValue:
 
 				bestValue = result
@@ -133,6 +148,8 @@ class Learner:
 
 	def optimizeAllParamsOnce(self):
 
+		self.DateSampler.refreshRandomDateSamples()
+
 		self.unlockAllParams()
 
 		self.shuffleOptimizationOrder()
@@ -166,10 +183,8 @@ class Learner:
 
 				self.noOptimizationReset()
 
-
 			else:
 				
-
 				self.updateBestResults(result)
 
 				if self.stopCritMet:
@@ -191,12 +206,12 @@ class Learner:
 
 	def evaluateParams(self, bestParams):
 
-		return self.assessmentFunc(self.symbolData, self.investment, bestParams, self.formatFunc)
+		return self.runAssessment(bestParams)
 
 		
 	def updateBestResults(self, result):
 
-			if len(self.bestResults) == 3:
+			if len(self.bestResults) == 4:
 
 				self.bestResults.pop(0)
 				self.bestResults.append(result)
@@ -219,33 +234,21 @@ class Learner:
 
 def volumeAnalysisPutsFormat(a, b, c, d, e, f, g):
 
-	return [[a, b, c, d, e], [], [f, g], 20]
+	return [[a, b, c, d, e], [], [f, g, 0, 0], 60]
 
 def volumeAnalysisCallsFormat(a, b, c, d, e, f, g):
 
-	return [[], [a, b, c, d, e], [f, g], 20]
+	return [[], [a, b, c, d, e], [0, 0, h, i], 60]
 
-def volumeAnalysisAssessment(symbolData, investment, paramSet, formatFunc):
+def volumeAnalysisAssessment(symbolData, investment, paramSet, formatFunc, startDate, endDate):
 
 	blockPrint()
-	sim = Simulation(*symbolData, investment, "fiveMinute", volumeAnalysis, formatFunc(*paramSet), startDate = "2020-08-31", endDate = "2020-09-09")
+	sim = Simulation(*symbolData, investment, "fiveMinute", volumeAnalysis, formatFunc(*paramSet), startDate, endDate)
 	sim.runSimulation()
 	enablePrint()
 
 	return sim.portfolio.totalValue
 
-def testFormat(a, b):
-	return [a, b]
-
-def testAssess(symbol, investment, paramSets, variableIndex):
-
-	for paramSet in paramSets:
-
-		if paramSet[0] > 5:
-
-			return paramSet[variableIndex]
-
-	return 0
 
 
 def blockPrint():

@@ -2,14 +2,18 @@ import statistics
 
 class Param:
 
-	def __init__(self, name, initialVal, rangeSize, stopCriteria=.75, stepCount=10):
-		self.initialRangeSize = rangeSize
+	def __init__(self, name, initialVal, paramSign, stopCriteria=.75, stepCount=10):
+
+		assert paramSign in [1, 0, -1]
+
+		self.paramSign = paramSign
 		self.firstGuess = initialVal
+		self.initialRangeSize = 2*abs(self.firstGuess) or 40
 
 		self.name = name
 		self.initial = initialVal
 		
-		self.rangeSize = rangeSize
+		self.rangeSize = self.initialRangeSize
 		self.stopCriteria = stopCriteria
 		self.stepCount = stepCount
 		self.setParamRange()
@@ -34,7 +38,19 @@ class Param:
 
 			params.append(self.initial + i*interval)
 
-		self.range = params
+		if self.paramSign == 1:
+
+			self.range = [param for param in params if param >= 0]
+
+		elif self.paramSign == -1:
+
+			self.range = [param for param in params if param <= 0]
+
+		else:
+
+			self.range = params
+
+
 
 	def shrinkParamRange(self):
 

@@ -51,7 +51,7 @@ class Simulation:
 
 		return self.portfolio.stockProfile(symbol)
 
-	def createDateList(sampleHistoricals, startDate, endDate):
+	def createDateList(sampleHistoricals, startDate=None, endDate=None):
 
 		return [date for date in list(sampleHistoricals.keys()) if is_in_range(date, startDate, endDate)]
 
