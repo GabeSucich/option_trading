@@ -154,6 +154,16 @@ def json_filename(symbol):
 	"""Appends .json to the string SYMBOL"""
 	return "stockJSON/" + symbol + ".json"
 
+def remove_date_for_stock(symbol, date):
+	data = get_json_object(symbol)
+	if date in data:
+		del data[date]
+		dump_json(data, json_filename(symbol))
+	
+def remove_date_from_all(date):
+	for symbol in list_tracked_stocks():
+		remove_date_for_stock(symbol, date)
+
 
 
 

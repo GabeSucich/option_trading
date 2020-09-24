@@ -3,7 +3,7 @@ import statistics
 import sys, os
 from Simulation import *
 from SimPortfolioControl import *
-from StockHistoricals import *
+from IndividualStockHistorical import *
 
 class ProcessHistoricals:
 
@@ -14,30 +14,40 @@ class ProcessHistoricals:
 		self.goodCalls, self.badCalls = self.seperateCalls()
 		self.goodPuts, self.badPuts = self.seperatePuts()
 		self.totalProfit = self.findTotalProfit(Simulation)
+		self.actions ,self.goodActions, self.badActions = findGoodandBadActions(Simulation)
 		self.simulation = Simulation
 
 
 	def findOptionDataForEachStock(self, Simulation):
 
-		self.stockHistoricals = {}
+		self.IndividualStockHistorical = {}
 		self.options = []
 		self.calls = []
 		self.puts = []
 		self.stockPortfolioSymbols = list(Simulation.portfolio.stockPortfolios.keys())
 		for sym in self.stockPortfolioSymbols:
-			self.stockHistoricals[sym] = StockHistoricals(Simulation.stockProfile(sym).options)
-			for option in self.stockHistoricals[sym].options:
+			self.IndividualStockHistorical[sym] = IndividualStockHistorical(Simulation.stockProfile(sym).options, sym, Simulation)
+			for option in self.IndividualStockHistorical[sym].options:
 				self.options.append(option)
 				if option.optionType == "call":
 					self.calls.append(option)
 				else:
 					self.puts.append(option)
 
+
+	def findGoodandBadActions(self, Simulation):
+		actions = []
+		goodActions = []
+		
+
+
 	def findStockHistoricalFromSym(self, sym):
+
 		assert sym in self.stockPortfolioSymbols, "The symbol {0} is not part of this simulation".format(sym)
-		return self.stockHistoricals[sym]
+		return self.IndividualStockHistorical[sym]
 
 	def findTotalProfit(self, simulation):
+
 		return simulation.portfolio.totalProfit
 
 	def seperateOptions(self):
@@ -191,10 +201,6 @@ class ProcessHistoricals:
 			findPutPercentDecreases.append(put.finalPercentChange)
 		return putPercentDecreases
 
-	def percentGoodOptions(self):
-
-		return len(self.goodOptions)/(len(self.goodOptions) + len(self.badOptions))
-
 	def findPutPercentDecreasesForStock(self, sym):
 
 		return self.findStockHistoricalFromSym(sym).findPutPercentDecreases()
@@ -247,7 +253,7 @@ class ProcessHistoricals:
 
 	def findCallPercentChanges(self):
 
-		return self.findCallPercentIncreases().append(self.findOptionPercentDecreases())
+		return self.findCallPercentIncreases() + self.findCallPercentDecreases()
 
 	def findCallPercentChangesForStock(self, sym):
 
@@ -255,7 +261,7 @@ class ProcessHistoricals:
 
 	def findPutPercentChanges(self):
 
-		return self.findPutPercentIncreases().append(self.findPutPercentDecreases())
+		return self.findPutPercentIncreases() + self.findPutPercentDecreases()
 
 	def findPutPercentChangesForStock(self, sym):
 
@@ -263,7 +269,7 @@ class ProcessHistoricals:
 
 	def findOptionPercentChanges(self):
 
-		return self.findCallPercentChanges().append(self.findPutPercentChanges())
+		return self.findCallPercentChanges() + self.findPutPercentChanges()
 
 	def findOptionPercentChangesForStock(self, sym):
 
@@ -409,7 +415,7 @@ class ProcessHistoricals:
 
 	def findCallMoneyChanges(self):
 
-		return self.findCallMoneyIncreases().append(self.findCallMoneyDecreases())
+		return self.findCallMoneyIncreases() + self.findCallMoneyDecreases()
 
 	def findCallMoneyChangesForStock(self, sym):
 
@@ -425,7 +431,7 @@ class ProcessHistoricals:
 
 	def findPutMoneyChanges(self):
 
-		return self.findPutMoneyIncreases().append(self.findPutMoneyDecreases())
+		return self.findPutMoneyIncreases() + self.findPutMoneyDecreases()
 
 	def findPutMoneyChangesForStock(self, sym):
 
@@ -441,7 +447,7 @@ class ProcessHistoricals:
 
 	def findOptionMoneyChanges(self):
 
-		return self.findCallMoneyChanges().append(self.findPutMoneyChanges())
+		return self.findCallMoneyChanges() + self.findPutMoneyChanges()
 
 	def findOptionMoneyChangesForStock(self, sym):
 
@@ -457,7 +463,15 @@ class ProcessHistoricals:
 
 	def writeReport(self):
 
-		print("The simulation made a total profit of ${0}\n").format(self.totalProfit)
+		print("The simulation made a total profit of ${0} starting from an initial investment of ${1}".format(self.totalProfit, self.simulation.portfolio.initialInvestment))
+		print("a total of {0} options were traded, with {1} of those being calls and {2} being puts".format(self.optionCount(), self.callCount(), self.putCount()))
+		print("of the {0} options, {1}% of them traded for a profit and {2}% of them traded for a loss".format(self.optionCount(), round(self.percentGoodOptions(), 2), round(self.percentBadOptions(), 2)))
+		print("of the {0} calls, {1}% of them traded for a profit and {2}% of them traded for a loss".format(self.callCount(), round(self.percentGoodCalls(), 2), round(self.percentBadCalls(), 2)))
+		print("of the {0} puts, {1}% of them traded for a profit and {2}% of them traded for a loss".format(self.putCount(), round(self.percentGoodPuts(), 2), round(self.percentBadPuts(), 2)))
+
+	def writeReportForStock(self, sym):
+
+		return self.findStockHistoricalFromSym(sym).writeReport()
 
 	def getXAxisValues(self):
 
@@ -470,7 +484,8 @@ class ProcessHistoricals:
 			portfolioValues.append(dataPoint["totalValue"])
 		return portfolioValues
 
-	def plotValueOverTime(self):
+	def plot(self):
+
 		xAxis = self.getXAxisValues()
 		yAxis = self.getYAxisValues()
 		plt.plot(xAxis, yAxis)
@@ -478,3 +493,67 @@ class ProcessHistoricals:
 		plt.xlabel('Minutes')
 		plt.ylabel('Portfolio Value')
 		plt.show()
+
+	def plotForStock(self, sym):
+
+		return self.findStockHistoricalFromSym(sym).plot()
+
+	def percentGoodOptions(self):
+
+		if len(self.goodOptions) + len(self.badOptions) == 0:
+			return 0
+		return len(self.goodOptions)/(len(self.goodOptions) + len(self.badOptions))
+
+	def percentGoodOptionsForStock(self, sym):
+
+		return self.findStockHistoricalFromSym(sym).percentGoodOptions()
+
+	def percentBadOptions(self):
+
+		if len(self.goodOptions) + len(self.badOptions) == 0:
+			return 0
+		return len(self.badOptions)/(len(self.goodOptions) + len(self.badOptions))
+
+	def percentBadOptionsForStock(self, sym):
+
+		return self.findStockHistoricalFromSym(sym).percentBadOptions()
+
+	def percentGoodCalls(self):
+
+		if len(self.goodCalls) + len(self.badCalls) == 0:
+			return 0
+		return len(self.goodCalls)/(len(self.goodCalls) + len(self.badCalls))
+
+	def percentGoodCallsForStock(self, sym):
+
+		return self.findStockHistoricalFromSym(sym).percentGoodCalls()
+
+	def percentBadCalls(self):
+
+		if len(self.goodCalls) + len(self.badCalls) == 0:
+			return 0
+		return len(self.badCalls)/(len(self.goodCalls) + len(self.badCalls))
+
+	def percentBadCallsForStock(self, sym):
+
+		return self.findStockHistoricalFromSym(sym).percentBadCalls()
+
+	def percentGoodPuts(self):
+
+		if len(self.goodPuts) + len(self.badPuts) == 0:
+			return 0
+		return len(self.goodPuts)/(len(self.goodPuts) + len(self.badPuts))
+
+	def percentGoodPutsForStock(self, sym):
+
+		return self.findStockHistoricalFromSym(sym).percentGoodPuts()
+
+	def percentBadPuts(self):
+
+		if len(self.goodPuts) + len(self.badPuts) == 0:
+			return 0
+		return len(self.badPuts)/(len(self.goodPuts) + len(self.badPuts))
+
+	def percentBadPutsForStock(self, sym):
+
+		return self.findStockHistoricalFromSym(sym).percentBadPuts()
