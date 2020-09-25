@@ -7,7 +7,7 @@ from IndividualStockHistorical import *
 sys.path.insert(1, "../Utils/datetime_funcs.py")
 # from datetime_funcs import time_between
 
-class Event:
+class HourEvent:
 
 	def __init__(self, Simulation, sym):
 

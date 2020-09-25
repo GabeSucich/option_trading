@@ -4,6 +4,7 @@ import sys, os
 from Simulation import *
 from SimPortfolioControl import *
 from IndividualStockHistorical import *
+from Event import *
 
 class ProcessHistoricals:
 
@@ -14,7 +15,7 @@ class ProcessHistoricals:
 		self.goodCalls, self.badCalls = self.seperateCalls()
 		self.goodPuts, self.badPuts = self.seperatePuts()
 		self.totalProfit = self.findTotalProfit(Simulation)
-		self.actions ,self.goodActions, self.badActions = findGoodandBadActions(Simulation)
+		# self.hourEvents, self.goodHourEvents, self.badHourEvents = self.findHourEvents(Simulation)
 		self.simulation = Simulation
 
 
@@ -35,11 +36,18 @@ class ProcessHistoricals:
 					self.puts.append(option)
 
 
-	def findGoodandBadActions(self, Simulation):
-		actions = []
-		goodActions = []
-		
+	# def findHourEvents(self, Simulation):
 
+	# 	self.events = []
+	# 	self.goodEvents = []
+	# 	self.badEvents = []
+	# 	for sym in self.stockPortfolioSymbols:
+	# 		[newEvents, newGoodEvents, newBadEvents] = findStockHistoricalFromSym(sym).findEvents(Simulation, sym)
+	# 	return []
+
+	def hourEventsCount(self):
+
+		return len(self.hourEvents)
 
 	def findStockHistoricalFromSym(self, sym):
 

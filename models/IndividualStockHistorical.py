@@ -1,6 +1,7 @@
 from Simulation import *
 from SimPortfolioControl import *
 from ProcessHistoricals import *
+from Event import *
 import statistics
 import sys, os
 
@@ -35,6 +36,34 @@ class IndividualStockHistorical:
 				self.optionCounter["puts"] += 1;
 				self.optionCounter["total"] += 1;
 				self.optionPercentChangesAndTimes["puts"][option.purchaseDate + option.purchaseTime] = {"percentChange" : option.finalPercentChange, "sellDate" : option.finalDate, "sellTime" : option.finalTime, "profit" : option.totalProfit}
+
+	# def findHourlyEvents(self, Simulation, sym):
+
+	# 	self.events = []
+	# 	self.goodEvents = []
+	# 	self.badEvents = []
+	# 		makeNewEvent = True;
+	# 		for option in Simulation.stockProfile(sym).options:
+	# 			if !makeNewEvent:
+	# 				if currentEvent.checkIfOptionInEvent(option):
+	# 					currentEvent.addOptionToEvent(option)
+	# 				else:
+	# 					currentEvent.closeEvent()
+	# 					self.events.append(currentEvent)
+	# 					if currentEvent.percentChange() > 0:
+	# 						self.goodEvents.append(currentEvent)
+	# 					else:
+	# 						self.badEvents.append(currentEvent)
+	# 					makeNewEvent = True
+	# 			if makeNewEvent:
+	# 				currentEvent = Event(Simulation, sym)
+	# 				currentEvent.setStart(option)
+	# 				makeNewEvent = False
+	# 	return [self.events, self.goodEvents, self.badEvents]
+
+	def findEvents(self, Simulation):
+
+		self.events =  EventFinder(Simulation)
 
 	def findTotalProfit(self, simulation):
 
