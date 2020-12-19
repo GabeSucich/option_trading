@@ -1,6 +1,7 @@
 import datetime as dt
 from datetime import date, datetime
 
+"""Functions handling time"""
 
 def utc_to_military(utc_time):
 	"""Takes UTC time (HH-MM) and converts it to military time: (HHMM)"""
@@ -11,15 +12,21 @@ def utc_to_military(utc_time):
 
 	return hour + minute
 
-
 def get_military_time():
 	"""Returns the time in HHMM format"""
 	time = datetime.now()
 	return time.strftime("%H%M")
 
-def time_between(time1, time2):
+def adjust_by_hours(num_hours, time):
+	"""Takes in military time as a string, and adjusts it by the specified number of hours"""
 
-	return abs(int(time1) - int(time2))
+	time = int(time)
+	time += num_hours*100
+	return str(time)
+
+
+
+"""Functions handling dates"""
 
 def string_to_date(std_date):
 	"""Takes in a string date and converts it to a date form for computation."""
@@ -125,6 +132,7 @@ def is_in_range(query_date, start_date, end_date):
 	else:
 
 		return is_not_past(query_date, start_date) and is_not_past(end_date, query_date)
+
 
 def is_today(date):
 	"""Takes in the string form of a date and returns whether or not that date is today."""

@@ -101,29 +101,6 @@ def future_id_generator(json_data):
 
 """Functions which gather information from the Robinhood API."""
 
-# def new_market_data(stock_data):
-# 	"""STOCK_DATA is a single dictionary from the "tracked_stocks" list which holds the daily data for a single stock. TIME is a time of data collection that is ALREADY ROUNDED
-# 	to the nearest storage time. This function calls on the market data for each id key in stock data, gathers the option market data, and adds it to the stock_data as the value of
-# 	the appropriate time key."""
-# 	symbol = stock_data['symbol']
-# 	market_dict = stock_data['market_data']
-# 	time = round_to_thirty(get_military_time())
-
-# 	for option_id in list(market_dict.keys()):
-# 		try:
-# 			market_data = market_data_by_id(option_id)
-# 			market_dict[option_id][time] = market_data
-# 		except:
-# 			print("There was an error storing the market data for the option id {0} for {1} at {2}".format(option_id, symbol, time))
-
-# def update_all_data():
-# 	"""Adds new market data for every tracked stock at the current time."""
-
-# 	if market_is_open():
-
-# 		for stock_data in tracked_stocks:
-# 			new_market_data(stock_data)
-
 # -------------------------------------------------------- #
 
 def historical_dates_available(historicals_list):
@@ -395,6 +372,19 @@ def check_all_data(symbols=[]):
 		error_count = check_data(symbol)
 		if error_count == 0: 
 			print("No errors found for " + symbol)
+
+def check_for_date(symbol, date):
+
+	data = get_json_object(symbol)
+
+	for option in option_generator(data):
+
+		if date in option:
+
+			return True
+
+	return False
+
 
 def remove_invalid_dates_for_option(option):
 
