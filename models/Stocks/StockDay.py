@@ -7,10 +7,10 @@ import Utils.jsonHelper as jh
 
 class StockDay:
 
-	def __init__(self, date, priceData):
+	def __init__(self, date, priceData)
 
 		self.date = date
-		self.priceData = convertPricesToNumeric(priceData)
+		self.priceData = priceData
 
 		self.openPrice = bsm.dailyOpenPrice(self.priceData)
 		self.closePrice = bsm.dailyClosePrice(self.priceData)
@@ -18,6 +18,8 @@ class StockDay:
 		self.lowPrice = bsm.dailyLowPrice(self.priceData)
 
 		self.averagePrice = bsm.dailyAveragePrice(self.priceData)
+
+		self.metrics = {}
 
 	"""Returns the date."""
 	def getDate(self):
@@ -39,6 +41,12 @@ class StockDay:
 	def getAveragePrice(self):
 		return self.averagePrice
 
+	def setMetric(self, name, value):
+		self.metrics[name] = value
+
+	def getMetric(self, name):
+		return self.metrics[name]
+
 
 class QuartileStockDay(StockDay):
 
@@ -54,11 +62,12 @@ class QuartileStockDay(StockDay):
 		self.q3AveragePrice = bsm.intervalAveragePrice(priceData, q3)
 		self.q4AveragePrice = bsm.intervalAveragePrice(priceData, q4)
 
-		self.q1Volume = bs.intervalVolume(priceData, q1)
-		self.q2Volume = bs.intervalVolume(priceData, q2)
-		self.q3Volume = bs.intervalVolume(priceData, q3)
-		self.q4Volume = bs.intervalVolume(priceData, q4)
+		self.q1Volume = bsm.intervalVolume(priceData, q1)
+		self.q2Volume = bsm.intervalVolume(priceData, q2)
+		self.q3Volume = bsm.intervalVolume(priceData, q3)
+		self.q4Volume = bsm.intervalVolume(priceData, q4)
 
 		super().__init__(date, priceData)
+
 
 

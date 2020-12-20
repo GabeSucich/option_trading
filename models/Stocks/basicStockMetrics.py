@@ -40,10 +40,12 @@ def dailyVolume(priceData):
 
 def getIntervalTimes(priceData, startTime, endTime):
 
+	startTime, endTime = eval(startTime), eval(endTime)
+
 	times = []
 	for time in list(priceData.keys()):
 
-		if time >= startTime and time <= endTime:
+		if eval(time) >= startTime and eval(time) <= endTime:
 
 			times.append(time)
 
