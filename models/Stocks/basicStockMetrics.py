@@ -36,6 +36,22 @@ def dailyVolume(priceData):
 
 	return sum([timePoint["volume"] for timePoint in list(priceData.values())])
 
+def firstHourAverage(priceData):
+
+	total = 0
+	count = 0
+
+	for time, data in priceData.items():
+
+		if time == "730":
+			break
+
+		else:
+			total += (data["open_price"] + data["close_price"])/2
+			count += 1
+
+	return total/count
+
 """These functions extract stock price metrics for certain intervals"""
 
 def getIntervalTimes(priceData, startTime, endTime):
@@ -66,11 +82,11 @@ def intervalAveragePrice(priceData, intervalTimes):
 
 def intervalHighPrice(priceData, intervalTimes):
 
-	return max([priceData[data] for date in intervalTimes])
+	return max([priceData[time]["open_price"] + priceData[time]["close_price"] for time in intervalTimes])/2
 
 def intervalLowPrice(priceData, intervalTimes):
 
-	return min([priceData[data] for date in intervalTimes])
+	return min([priceData[time]["open_price"] + priceData[time]["close_price"] for time in intervalTimes])
 
 def intervalClosePrice(priceData, intervalTimes):
 

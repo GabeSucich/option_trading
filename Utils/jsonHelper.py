@@ -28,6 +28,14 @@ def readJSON(filename):
 
 	return data
 
+def dumbJSON(data, filename):
+
+	data_file = open(filename, "w")
+	json.dump(data, data_file)
+	data_file.close()
+
+	return "{0} successfully updated".format(filename)
+
 def processStockHistoricals(data):
 	if "2020-11-27" in data:
 		del data["2020-11-27"]
