@@ -11,7 +11,15 @@ def dailyOpenPrice(priceData):
 
 def dailyClosePrice(priceData):
 
-	return priceData["1255"]["close_price"]
+	if "1255" in priceData:
+
+		return priceData["1255"]["close_price"]
+
+	else:
+
+		lastTime = max(list(priceData.keys()), key = lambda strTime: eval(strTime))
+
+		return priceData[lastTime]["close_price"]
 
 def dailyHighPrice(priceData):
 
