@@ -1,7 +1,7 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 
-from stocks import *
+from Stocks.stocks import *
 from Utils.datetime_funcs import *
 import json
 
@@ -28,6 +28,19 @@ def init_stock(symbol):
 
 	print("{} initialized".format(symbol))
 
+def remove_date_for_stock(symbol, date):
+
+	data = get_json_object(symbol)
+	if date in data:
+		del data[date]
+		dump_json(data, json_filename(symbol))
+
+def remove_date_from_all(date):
+
+	for symbol in list_tracked_stocks():
+
+		remove_date_for_stock(symbol, date)
+
 def update_stock_data(symbols = []):
 
 	if not symbols:
@@ -39,6 +52,8 @@ def update_stock_data(symbols = []):
 		print("Collecting stock data for " + symbol)
 		json_data = read_json(json_filename(symbol))
 		update_data_for_all_new_dates(symbol, json_data)
+		correct_timezones(json_data)
+		print("Correcting timezones for " + symbol)
 		dump_json(json_data, json_filename(symbol))
 		print("Saving stock data for " + symbol)
 
@@ -119,6 +134,43 @@ def create_data_object(data_point):
 		}		
 
 
+"""Functions to correct timezone flaws"""
+
+def corrected_timezone_object(data, num_hours):
+
+	corrected = {"corrected": True}
+
+	for time, data in data.items():
+		corrected_time = adjust_by_hours(num_hours, time)
+		corrected[corrected_time] = data
+
+	return corrected
+
+def correct_timezone_for_date(all_data, date):
+
+	date_data = all_data[date]
+	if "corrected" not in date_data:
+		first_time = list(date_data.keys())[0]
+		if first_time == "630":
+			date_data["corrected"] = True
+		else:
+			hour_offset = (630 - eval(first_time))//100
+			all_data[date] = corrected_timezone_object(date_data, hour_offset)
+
+
+def correct_timezones(stock_data):
+
+	dates = list(stock_data.keys())
+	for date in dates:
+		correct_timezone_for_date(stock_data, date)
+
+
+
+
+# def fix_timezones_for_day(daily_data):
+
+# 	corrected = {}
+# 	for 
 
 """Functions to read and write JSON into data files."""
 

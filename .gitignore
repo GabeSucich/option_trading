@@ -2,3 +2,6 @@
 credentials.json
 optionJSON/
 stockJSON/
+TwofoldModelMetrics/
+StockDataFrames/
+StockClusters/
