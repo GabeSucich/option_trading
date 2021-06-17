@@ -41,6 +41,28 @@ def remove_date_from_all(date):
 
 		remove_date_for_stock(symbol, date)
 
+def backup_data(symbol, json_data):
+
+	filename = "../../JSONBackup/stockJSON/" + symbol + ".json"
+
+	print("Backing up data for " + symbol)
+
+	dump_json(json_data, filename)
+	
+	print("Data successfully backed up for " + symbol)
+
+def run_backup(symbols = []):
+
+	if not symbols:
+
+		symbols = list_tracked_stocks()
+
+	for symbol in symbols:
+
+		json_data = get_json_object(symbol)
+
+		backup_data(symbol, json_data)
+
 def update_stock_data(symbols = []):
 
 	if not symbols:
@@ -51,6 +73,7 @@ def update_stock_data(symbols = []):
 
 		print("Collecting stock data for " + symbol)
 		json_data = read_json(json_filename(symbol))
+		backup_data(symbol, json_data)
 		update_data_for_all_new_dates(symbol, json_data)
 		correct_timezones(json_data)
 		print("Correcting timezones for " + symbol)

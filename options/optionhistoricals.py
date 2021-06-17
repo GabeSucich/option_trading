@@ -1,8 +1,13 @@
+import sys, os
+
+import sys, os
+
 from options import *
 from Utils import login
 from Utils.datetime_funcs import *
 import json
 import holidays
+
 
 closed_holidays = ["New Year's Day", "Martin Luther King Jr. Day", "Independence Day", "Thanksgiving", "Memorial Day", "Labor Day", "Christmas Day", "Washington's Birthday"]
 
@@ -17,6 +22,33 @@ def read_json(filename):
 	data_file.close()
 
 	return data
+
+def backup_data(symbol, json_data):
+
+	filename = "../../JSONBackup/optionJSON/" + symbol + ".json"
+
+	print("Backing up data for " + symbol)
+
+	dump_json(json_data, filename)
+	
+	print("Data successfully backed up for " + symbol)
+
+def get_json_backup_object(symbol):
+
+	filename = "../../JSONBackup/optionJSON/" + symbol + ".json"
+	
+	return read_json(filename)
+
+
+
+def run_backup():
+
+	for symbol in list_tracked_stocks():
+
+		stock_data = get_json_object(symbol)
+		backup_data(symbol, stock_data)
+
+
 
 def dump_json(updated_dict, filename):
 	"""UPDATED_DICT is the option object with updated data. FILENAME is the name of the json file containing the option information.
@@ -73,6 +105,9 @@ def option_generator(json_data):
 	for expiration in expiration_generator(json_data):
 
 		yield from option_generator_for_expiration(json_data, expiration)
+
+def option_date_object_generator(option_data):
+	"""Yields each daily"""
 
 def future_option_generator(json_data):
 	"""Yields the dictionary for every single option with an expiration date in the future from a JSON_DATA dictionary."""
@@ -169,6 +204,7 @@ def new_basic_data_for_expiration(json_data, expiration, date_list):
 def new_basic_data(symbol, json_data, date_list):
 	"""JSON_DATA is a dictionary read in from a JSON file. This function will collect basic data for the given stock on the given day and add it into the dictionary."""
 	
+	print("Updating basic data for " + symbol)
 	for expiration in future_expiration_generator(json_data):
 
 		new_basic_data_for_expiration(json_data, expiration, date_list)
@@ -197,6 +233,8 @@ def update_all_basic_data(date_list, symbols=[]):
 
 			print("Starting data collection for {}".format(symbol))
 			json_data = get_json_object(symbol)
+			print("Retrieved json object")
+			backup_data(symbol, json_data)
 			new_basic_data(symbol, json_data, date_list)
 
 
@@ -318,7 +356,7 @@ def update_strikes_for_all(symbols=[]):
 		dump_json(json_data, json_filename(symbol))
 
 
-def daily_update(date_list, symbols = []):
+def daily_update(date_list, symbols = [], basic_data = True, expirations = True, strikes = True, check = False):
 	if type(date_list) == str:
 		date_list = [date_list]
 
@@ -327,11 +365,17 @@ def daily_update(date_list, symbols = []):
 
 		symbols = list_tracked_stocks()
 
-	print(date_list)
-	update_all_basic_data(date_list, symbols)
-	update_expirations_for_all(symbols)
-	update_strikes_for_all(symbols)
-	check_all_data(symbols)
+	if basic_data:
+		update_all_basic_data(date_list, symbols)
+
+	if expirations:
+		update_expirations_for_all(symbols)
+
+	if strikes:
+		update_strikes_for_all(symbols)
+
+	if check:
+		check_all_data(symbols)
 
 def check_data(symbol):
 
@@ -386,6 +430,40 @@ def check_for_date(symbol, date):
 	return False
 
 
+
+def remove_date_from_option(option, date):
+
+	if date in option:
+
+		del option[date]
+
+def remove_date_from_historicals(historicals, date):
+
+	for option in option_generator(historicals):
+
+		remove_date_from_option(option, date)
+
+def remove_dates(dates, symbols = []):
+
+	if type(dates) == str:
+		dates = [dates]
+
+	if not symbols:
+
+		symbols = list_tracked_stocks()
+
+	for symbol in symbols:
+
+		for date in dates:
+
+			print("Removing " + date + " from " + symbol)
+
+			historicals = get_json_object(symbol)
+			remove_date_from_historicals(historicals, date)
+			dump_json(historicals, json_filename(symbol))
+
+			print("Successfully removed " + date + " from " + symbol)
+
 def remove_invalid_dates_for_option(option):
 
 	option_id = option["id"]
@@ -415,30 +493,6 @@ def remove_invalid_dates_for_option(option):
 
 			option["scrubbed"] = "complete"
 
-def remove_date_from_option(option, date):
-
-	if date in option:
-
-		del option[date]
-
-def remove_date_from_historicals(historicals, date):
-
-	for option in option_generator(historicals):
-
-		remove_date_from_option(option, date)
-
-def remove_date(date, symbols = []):
-
-	if not symbols:
-
-		symbols = list_tracked_stocks()
-
-	for symbol in symbols:
-
-		historicals = get_json_object(symbol)
-		remove_date_from_historicals(historicals, date)
-		dump_json(historicals, json_filename(symbol))
-
 
 def remove_invalid_dates_for_expiration(json_data, expiration):
 
@@ -462,9 +516,90 @@ def remove_all_invalid_dates(symbols = []):
 
 		print("Removing invalid data for " + symbol)
 		data = get_json_object(symbol)
+		backup_data(symbol, data)
 		remove_invalid_dates_from_json(data)
 		print("Saving scrubbed data for " + symbol)
 		dump_json(data, json_filename(symbol))
+
+
+def correct_timezones(symbols = [], backup = True):
+
+	if not symbols:
+
+		symbols = list_tracked_stocks()
+
+	for symbol in symbols:
+
+		print("Correcting timezones for " + symbol)
+
+		json_data = get_json_object(symbol)
+
+		if backup:
+
+			backup_data(symbol, json_data)
+
+		correct_timezones_for_stock_data(json_data)
+
+		dump_json(json_data, json_filename(symbol))
+
+		print("Corrected timezones successfully saved for " + symbol)
+
+
+
+
+def correct_timezones_for_stock_data(json_data):
+
+	options = option_generator(json_data)
+
+	for option_object in options:
+
+		correct_timezones_for_option(option_object)
+
+
+
+def correct_timezones_for_option(option_object):
+
+	for date, date_object in option_object.items():
+
+		if date != "id" and date != "scrubbed" and "corrected" not in date_object:
+
+			option_object[date] = correct_date_object_timezones(date_object)
+
+
+
+def correct_date_object_timezones(date_object):
+
+	date_object_times = list(date_object.keys())
+
+	if len(date_object_times) == 0:
+		
+		return date_object
+
+	first_time = date_object_times[0]
+
+	if first_time == "630":
+
+		date_object["corrected"] = True
+		return date_object
+
+	else:
+
+		num_hours_offset = (630 - eval(first_time))//100
+
+		corrected_data = {"corrected": True}
+
+		for time, time_data in date_object.items():
+
+			corrected_time = adjust_by_hours(num_hours_offset, time)
+			corrected_data[corrected_time] = time_data
+
+		return corrected_data
+
+
+
+
+
+
 
 
 
